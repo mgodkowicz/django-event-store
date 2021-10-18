@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "py-event-store"
+name = "django-event-store"
 version = "0.1.0"
 description = "Python event store"
 authors = ["Michal Godkowicz <michal.godkowicz@gmail.com>"]

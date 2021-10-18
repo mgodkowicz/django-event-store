@@ -1,1 +1,1 @@
-# py-event-store
+# Django Event Store
