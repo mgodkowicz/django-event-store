@@ -4,9 +4,9 @@ from typing import Optional
 
 import pytest
 
-from in_memory_repository import EventDuplicatedInStream
-from record import Record
-from stream import Stream
+from event_store.in_memory_repository import EventDuplicatedInStream
+from event_store.record import Record
+from event_store.stream import Stream
 
 
 @pytest.fixture

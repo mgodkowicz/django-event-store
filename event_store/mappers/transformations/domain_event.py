@@ -1,5 +1,5 @@
-from event import Event
-from record import Record
+from event_store.event import Event
+from event_store.record import Record
 
 
 class DomainEvent:

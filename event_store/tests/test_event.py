@@ -1,8 +1,7 @@
 import datetime
-import time
 from unittest import TestCase
 
-from event import Event
+from event_store.event import Event
 
 
 class TestCreated(Event): pass

@@ -2,8 +2,8 @@ from unittest import TestCase
 
 # from event_store.event import Event
 # from event_store.subscriptions import Subscriptions
-from event import Event
-from subscriptions import Subscriptions
+from event_store.event import Event
+from event_store.subscriptions import Subscriptions
 
 
 class TestHandler:

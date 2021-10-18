@@ -1,4 +1,4 @@
-from record import Record
+from event_store.record import Record
 
 
 class SymbolizeMetadataKeys:

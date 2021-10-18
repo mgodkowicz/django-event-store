@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from event import Event
-from mappers.default import Default
-from record import Record
+from event_store.event import Event
+from event_store.mappers.default import Default
+from event_store.record import Record
 
 
 class TestMappers(TestCase):

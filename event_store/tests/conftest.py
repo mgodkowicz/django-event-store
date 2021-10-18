@@ -1,10 +1,10 @@
 import pytest
 
-from in_memory_repository import InMemoryRepository
-from mappers.default import Default
-from specification import Specification, SpecificationResult
-from specification_reader import SpecificationReader
-from stream import Stream
+from event_store.in_memory_repository import InMemoryRepository
+from event_store.mappers.default import Default
+from event_store.specification import Specification, SpecificationResult
+from event_store.specification_reader import SpecificationReader
+from event_store.stream import Stream
 
 
 @pytest.fixture

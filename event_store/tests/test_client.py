@@ -4,8 +4,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from client import Client
-from event import Event
+from event_store.client import Client
+from event_store.event import Event
 
 
 class TestEvent(Event):

@@ -1,4 +1,4 @@
-from mappers.pipeline import Pipeline
+from event_store.mappers.pipeline import Pipeline
 
 
 class PipelineMapper:

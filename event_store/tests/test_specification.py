@@ -4,12 +4,12 @@ from collections import Iterable
 from contextlib import contextmanager
 from unittest import TestCase
 
-from event import Event
-from in_memory_repository import InMemoryRepository
-from mappers.default import Default
-from specification import Specification, SpecificationResult, InvalidPageSize, InvalidPageStart, EventNotFound
-from specification_reader import SpecificationReader
-from stream import Stream, GLOBAL_STREAM
+from event_store.event import Event
+from event_store.in_memory_repository import InMemoryRepository
+from event_store.mappers.default import Default
+from event_store.specification import Specification, SpecificationResult, InvalidPageSize, InvalidPageStart, EventNotFound
+from event_store.specification_reader import SpecificationReader
+from event_store.stream import Stream, GLOBAL_STREAM
 
 
 class TestEvent(Event):
