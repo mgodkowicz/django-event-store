@@ -20,7 +20,7 @@ class Subscriptions:
     def _default_event_type_resolver(self, event_type):
         if isinstance(event_type, str):
             return event_type
-        return str(event_type.__class__.__name__)
+        return str(event_type.__name__)
 
     def resolve_event_types(self, event_types: List) -> List:
         return [

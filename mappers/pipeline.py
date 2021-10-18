@@ -1,8 +1,9 @@
+from mappers.transformations.domain_event import DomainEvent
 
 
 class Pipeline:
-    def __init__(self, *transformations):
-        self.transformations = transformations
+    def __init__(self, *transformations, to_domain_event=DomainEvent()):
+        self.transformations = [to_domain_event, *transformations]
 
     def dump(self, domain_event):
         for transformation in self.transformations:

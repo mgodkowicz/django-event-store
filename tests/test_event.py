@@ -29,7 +29,7 @@ class EventTest(TestCase):
         self.assertEqual(event.data["sample"], 123)
 
     def test_initial_event_id_used_as_event_id(self):
-        event = TestCreated(event_id=234)
+        event = TestCreated(event_id="234")
 
         self.assertEqual(event.event_id, "234")
         self.assertEqual(event.data, {})

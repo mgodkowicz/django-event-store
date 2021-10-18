@@ -18,4 +18,6 @@ class Broker:
 
     def add_subscription(self, subscriber: Callable, event_types: Iterable):
         # verify_subscription(subscriber)
+        if not callable(subscriber):
+            raise TypeError("Handler have to be callable.")
         self.subscriptions.add_subscription(subscriber, event_types)

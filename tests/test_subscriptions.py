@@ -31,8 +31,8 @@ class SubscriptionsTest(TestCase):
         handler = TestHandler()
         another_handler = TestHandler()
 
-        self.subscription.add_subscription(handler, [self.Test1DomainEvent, self.Test2DomainEvent])
-        self.subscription.add_subscription(another_handler, [self.Test2DomainEvent])
+        self.subscription.add_subscription(handler, [Test1DomainEvent, Test2DomainEvent])
+        self.subscription.add_subscription(another_handler, [Test2DomainEvent])
 
         assert self.subscription.all_for("Test1DomainEvent") == [handler]
         assert self.subscription.all_for("Test2DomainEvent") == [handler, another_handler]
@@ -47,6 +47,6 @@ class SubscriptionsTest(TestCase):
     def test_should_subscribe_by_type_of_event_which_is_class(self):
         handler = TestHandler()
 
-        self.subscription.add_subscription(handler, [self.Test1DomainEvent])
+        self.subscription.add_subscription(handler, [Test1DomainEvent])
 
         assert self.subscription.all_for("Test1DomainEvent") == [handler]

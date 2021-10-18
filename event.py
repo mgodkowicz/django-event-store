@@ -4,9 +4,9 @@ from abc import ABC
 from typing import Optional
 
 
-class Event(ABC):
+class Event():
     def __init__(self, event_id: Optional[str] = None, metadata: Optional[dict] = None, data: Optional[dict] = None):
-        self.event_id = str(event_id) or str(uuid.uuid4())
+        self.event_id = event_id or str(uuid.uuid4())
         self.metadata = metadata or {}
         self.data = data or {}
 
