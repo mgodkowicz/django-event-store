@@ -1,17 +1,16 @@
 import uuid
 from collections import Iterable
-from typing import Callable, List, Union, Optional
+from typing import Callable, List, Optional, Union
 
 from broker import Broker
 from dispatcher import Dispatcher
 from event import Event
-from repository import Records, EventsRepository
 from record import Record
+from repository import EventsRepository, Records
 from specification import Specification
 from specification_reader import SpecificationReader
 from stream import GLOBAL_STREAM, Stream
 from subscriptions import Subscriptions
-
 
 Events = Union[Event, List[Event]]
 

@@ -1,10 +1,10 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from math import inf
-from typing import List, Dict
+from typing import Dict, List
 
 from record import Record
-from repository import Records, EventsRepository
+from repository import EventsRepository, Records
 from specification import SpecificationResult
 from stream import Stream
 

@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, TypeVar, List, Callable
+from typing import Callable, Dict, List, TypeVar
 
 
 class Subscriptions:

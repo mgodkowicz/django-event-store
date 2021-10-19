@@ -1,4 +1,4 @@
-from typing import Iterable, Callable
+from typing import Callable, Iterable
 
 from dispatcher import Dispatcher
 from event import Event

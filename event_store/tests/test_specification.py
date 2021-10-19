@@ -4,17 +4,18 @@ from collections import Iterable
 from contextlib import contextmanager
 from unittest import TestCase
 
+from exceptions import EventNotFound, InvalidPageSize
+
 from event_store.event import Event
 from event_store.in_memory_repository import InMemoryRepository
 from event_store.mappers.default import Default
 from event_store.specification import (
+    InvalidPageStart,
     Specification,
     SpecificationResult,
-    InvalidPageStart,
 )
-from exceptions import EventNotFound, InvalidPageSize
 from event_store.specification_reader import SpecificationReader
-from event_store.stream import Stream, GLOBAL_STREAM
+from event_store.stream import GLOBAL_STREAM, Stream
 
 
 class TestEvent(Event):

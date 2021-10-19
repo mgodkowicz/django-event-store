@@ -3,12 +3,12 @@ from unittest import TestCase
 from unittest.mock import Mock
 
 import pytest
+from exceptions import EventNotFound, IncorrectStreamData, InvalidPageSize
+from specification import InvalidPageStart
+from stream import Stream
 
 from event_store.client import Client
 from event_store.event import Event
-from exceptions import IncorrectStreamData, EventNotFound, InvalidPageSize
-from specification import InvalidPageStart
-from stream import Stream
 
 
 class TestEvent(Event):
