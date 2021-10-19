@@ -4,12 +4,15 @@ from unittest import TestCase
 from event_store.event import Event
 
 
-class TestCreated(Event): pass
-class TestDeleted(Event): pass
+class TestCreated(Event):
+    pass
+
+
+class TestDeleted(Event):
+    pass
 
 
 class EventTest(TestCase):
-
     def test_default_values(self):
         event = TestCreated()
 
@@ -47,7 +50,9 @@ class EventTest(TestCase):
         event_metadata = {"timestmap": datetime.datetime.utcnow()}
 
         event = TestCreated(event_id="1", data=event_data, metadata=event_metadata)
-        different_event = TestCreated(event_id="1", data={"price": 123, **event_data}, metadata=event_metadata)
+        different_event = TestCreated(
+            event_id="1", data={"price": 123, **event_data}, metadata=event_metadata
+        )
 
         self.assertNotEqual(event, different_event)
 
@@ -72,6 +77,10 @@ class EventTest(TestCase):
         event_2 = TestCreated(event_id="1", data={"test": 234})
         self.assertFalse(event_1 == event_2)
 
-        event_1 = TestCreated(event_id="1", data={"test": 123}, metadata={"does": "not matter"})
-        event_2 = TestCreated(event_id="1", data={"test": 123}, metadata={"really": "yes"})
+        event_1 = TestCreated(
+            event_id="1", data={"test": 123}, metadata={"does": "not matter"}
+        )
+        event_2 = TestCreated(
+            event_id="1", data={"test": 123}, metadata={"really": "yes"}
+        )
         self.assertTrue(event_1 == event_2)

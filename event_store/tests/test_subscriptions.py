@@ -20,7 +20,6 @@ class Test2DomainEvent(Event):
 
 
 class SubscriptionsTest(TestCase):
-
     def setUp(self) -> None:
         self.Test1DomainEvent = Test1DomainEvent()
         self.Test2DomainEvent = Test2DomainEvent()
@@ -31,11 +30,16 @@ class SubscriptionsTest(TestCase):
         handler = TestHandler()
         another_handler = TestHandler()
 
-        self.subscription.add_subscription(handler, [Test1DomainEvent, Test2DomainEvent])
+        self.subscription.add_subscription(
+            handler, [Test1DomainEvent, Test2DomainEvent]
+        )
         self.subscription.add_subscription(another_handler, [Test2DomainEvent])
 
         assert self.subscription.all_for("Test1DomainEvent") == [handler]
-        assert self.subscription.all_for("Test2DomainEvent") == [handler, another_handler]
+        assert self.subscription.all_for("Test2DomainEvent") == [
+            handler,
+            another_handler,
+        ]
 
     def test_should_subscribe_by_type_of_event_which_is_string(self):
         handler = TestHandler()

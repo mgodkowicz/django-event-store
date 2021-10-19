@@ -19,4 +19,6 @@ def mapper():
 
 @pytest.fixture
 def specification(repository, mapper):
-    return Specification(SpecificationReader(repository, mapper), SpecificationResult(Stream.new()))
+    return Specification(
+        SpecificationReader(repository, mapper), SpecificationResult(Stream.new())
+    )

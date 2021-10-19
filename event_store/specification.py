@@ -3,16 +3,9 @@ from copy import copy
 from dataclasses import dataclass
 from typing import Optional
 
+from exceptions import EventNotFound, InvalidPageSize
 from specification_reader import SpecificationReader
 from stream import Stream
-
-
-class EventNotFound(Exception):
-    pass
-
-
-class InvalidPageSize(Exception):
-    pass
 
 
 @dataclass
@@ -58,7 +51,6 @@ class SpecificationResult:
     def last(self):
         return self.read_as == "last"
 
-
     # @property
     # def limit(self):
     #     return self.limit or math.inf
@@ -84,7 +76,9 @@ class InvalidPageStart(Exception):
 class Specification:
     DEFAULT_BATCH_SIZE = 100
 
-    def __init__(self, reader: SpecificationReader, result: Optional[SpecificationResult] = None):
+    def __init__(
+        self, reader: SpecificationReader, result: Optional[SpecificationResult] = None
+    ):
         self.reader = reader
         self.result = result or SpecificationResult()
 
@@ -131,8 +125,11 @@ class Specification:
         return self._new(stop=stop)
 
     def limit(self, count: int) -> "Specification":
-        if not count:
-            raise InvalidPageSize
+        try:
+            if not count or count < 0:
+                raise InvalidPageSize
+        except Exception:
+            raise InvalidPageSize("Page size has to be integer bigger than 0.")
 
         return self._new(count=count)
 

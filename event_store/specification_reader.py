@@ -2,11 +2,11 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from in_memory_repository import InMemoryRepository
+    from repository import EventsRepository
 
 
 class SpecificationReader:
-    def __init__(self, repository: "InMemoryRepository", mapper):
+    def __init__(self, repository: "EventsRepository", mapper):
         self.repository = repository
         self.mapper = mapper
 

@@ -3,7 +3,6 @@ from event_store.record import Record
 
 
 class DomainEvent:
-
     def dump(self, domain_event: Event):
         # TODO remove timestamp and valid_at, Why?
         return Record(

@@ -27,28 +27,23 @@ def record():
             timestamp=timestamp or datetime.datetime.now().timestamp(),
             valid_at=timestamp or datetime.datetime.now().timestamp(),
         )
+
     return _record_inner
 
 
 def test_does_not_allow_for_duplicated_events_in_the_stream(repository, record):
     event_id = str(uuid.uuid4())
     repository.append_to_stream(
-        [
-            record()
-        ],
+        [record()],
         Stream.new("other"),
         # ExpectedVersion
     )
     repository.append_to_stream(
-        [
-            record(event_id=event_id)
-        ],
+        [record(event_id=event_id)],
         Stream.new("stream"),
     )
     with pytest.raises(EventDuplicatedInStream):
         repository.append_to_stream(
-            [
-                record(event_id=event_id)
-            ],
+            [record(event_id=event_id)],
             Stream.new("stream"),
         )

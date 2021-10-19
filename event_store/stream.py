@@ -1,12 +1,18 @@
 from dataclasses import dataclass
 from typing import Optional
 
-GLOBAL_STREAM = 'global_stream'
+from exceptions import IncorrectStreamData
+
+GLOBAL_STREAM = "global_stream"
 
 
 @dataclass
 class Stream:
     name: str
+
+    def __post_init__(self):
+        if not self.name:
+            raise IncorrectStreamData
 
     @property
     def is_global(self):

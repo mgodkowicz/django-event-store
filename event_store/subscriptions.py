@@ -4,7 +4,9 @@ from typing import Dict, TypeVar, List, Callable
 
 class Subscriptions:
     def __init__(self, event_type_resolver=None):
-        self.event_type_resolver: Callable = event_type_resolver or self._default_event_type_resolver
+        self.event_type_resolver: Callable = (
+            event_type_resolver or self._default_event_type_resolver
+        )
         self._local = LocalSubscriptions()
         self._global = GlobalSubscriptions()
 
@@ -23,10 +25,7 @@ class Subscriptions:
         return str(event_type.__name__)
 
     def resolve_event_types(self, event_types: List) -> List:
-        return [
-            self.event_type_resolver(event_type)
-            for event_type in event_types
-        ]
+        return [self.event_type_resolver(event_type) for event_type in event_types]
 
 
 EventType = TypeVar("EventType")
