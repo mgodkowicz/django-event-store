@@ -19,7 +19,7 @@ class SpecificationReader:
             yield [self.mapper.record_to_event(record) for record in batch]
 
     def count(self, specification_result):
-        self.repository.count(specification_result)
+        return self.repository.count(specification_result)
 
     def has_event(self, event_id):
         return self.repository.has_event(event_id)

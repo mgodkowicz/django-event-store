@@ -22,7 +22,7 @@ class EventsRepository(ABC):
         pass
 
     @abstractmethod
-    def read(self, spec: SpecificationResult) -> Records:
+    def read(self, spec: SpecificationResult) -> List[Records]:
         pass
 
     @abstractmethod
@@ -31,4 +31,8 @@ class EventsRepository(ABC):
 
     @abstractmethod
     def delete_stream(self, stream: Stream) -> "EventsRepository":
+        pass
+
+    @abstractmethod
+    def count(self, spec: SpecificationResult) -> int:
         pass

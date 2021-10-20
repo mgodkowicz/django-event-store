@@ -1,8 +1,9 @@
 from collections import defaultdict
 from dataclasses import dataclass
 from math import inf
-from typing import Dict, List
+from typing import Dict, List, Union
 
+from batch_enumerator import BatchIterator
 from record import Record
 from repository import EventsRepository, Records
 from specification import SpecificationResult
@@ -51,9 +52,28 @@ class InMemoryRepository(EventsRepository):
 
     def read(
         self, spec: SpecificationResult
-    ) -> List[Records]:  # FIXME figure out the type
+    ) -> Union[List[Records], Record]:  # FIXME figure out the type
         serialized_records = self._read_scope(spec)
+        # FIXME deserialization?
         # return [record.deserialize(self.serializer) for record in serialized_records]
+        if spec.batched:
+
+            def batch_reader(offset: int, limit: int):
+                records = serialized_records[offset:]
+                return records[:limit]
+
+            res = [
+                batch
+                for batch in BatchIterator(
+                    spec.batch_size, len(serialized_records), batch_reader
+                )
+            ]
+            return res
+        elif spec.first:
+            return serialized_records[0] if serialized_records else None
+        elif spec.last:
+            return serialized_records[-1] if serialized_records else None
+
         return [serialized_records]
 
     def has_event(self, event_id: str) -> bool:
@@ -62,6 +82,9 @@ class InMemoryRepository(EventsRepository):
     def delete_stream(self, stream: Stream) -> "InMemoryRepository":
         del self.streams[stream.name]
         return self
+
+    def count(self, spec: SpecificationResult) -> int:
+        return len(self._read_scope(spec))
 
     def _add_to_stream(
         self, stream: Stream, serialized_record: Record, resolved_version, index
@@ -92,17 +115,25 @@ class InMemoryRepository(EventsRepository):
             if spec.limit is not inf
             else serialized_records
         )
+        if spec.with_ids is not None:
+            serialized_records = [
+                record
+                for record in serialized_records
+                if record.event_id in spec.with_ids
+            ]
+        if spec.with_types is not None:
+            # breakpoint()
+            serialized_records = [
+                record
+                for record in serialized_records
+                if record.event_type in spec.with_types
+            ]
         return serialized_records
 
     def _index_of(self, source: Records, event_id: str) -> int:
         for idx, record in enumerate(source):
             if record.event_id == event_id:
                 return idx
-
-        # try:
-        #     next(record for record in source if record.event_id == event_id)
-        #
-        # return source.index(event_id)
 
     def _event_ids_of_stream(self, stream: Stream) -> List[str]:
         return [event.event_id for event in self.streams[stream.name]]

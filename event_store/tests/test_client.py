@@ -106,14 +106,14 @@ def test_append_to_default_stream_when_not_specified(event_store):
     test_event = TestEvent(event_id=str(uuid.uuid4()))
     event_store.append(test_event)
 
-    assert event_store.read().limit(100).to_list() == [test_event]
+    assert event_store.read().limit(100).execute() == [test_event]
 
 
 def test_publish_first_event_should_expect_any_stream_state(event_store):
     first_event = TestEvent()
     event_store.publish(first_event)
 
-    assert event_store.read().to_list() == [first_event]
+    assert event_store.read().execute() == [first_event]
 
 
 def test_publish_next_event_should_expect_any_stream_state(event_store):
@@ -122,7 +122,7 @@ def test_publish_next_event_should_expect_any_stream_state(event_store):
     event_store.append(first_event)
     event_store.publish(second_event)
 
-    assert event_store.read().to_list() == [first_event, second_event]
+    assert event_store.read().execute() == [first_event, second_event]
 
 
 # def test_publish_first_event_should_fail_if_stream_is_not_empty(event_store):
@@ -148,7 +148,7 @@ def test_should_append_many_events(event_store, stream):
         "stream",
     )
 
-    assert event_store.read().stream("stream").to_list() == [first_event, second_event]
+    assert event_store.read().stream("stream").execute() == [first_event, second_event]
 
 
 def test_should_read_only_up_to_page_size_from_stream(event_store):
@@ -156,16 +156,16 @@ def test_should_read_only_up_to_page_size_from_stream(event_store):
         event_store.append(TestEvent(), "stream")
 
     # FIXME find out what's going on with PAGE_SIZE
-    assert len(event_store.read().stream("stream").limit(10).to_list()) == 10
-    assert len(event_store.read().backward().stream("stream").limit(10).to_list()) == 10
+    assert len(event_store.read().stream("stream").limit(10).execute()) == 10
+    assert len(event_store.read().backward().stream("stream").limit(10).execute()) == 10
 
 
 def test_should_raise_exception_when_stream_name_is_incorrect(event_store):
     with pytest.raises(IncorrectStreamData):
-        event_store.read().stream(None).to_list()
+        event_store.read().stream(None).execute()
 
     with pytest.raises(IncorrectStreamData):
-        event_store.read().stream("").to_list()
+        event_store.read().stream("").execute()
 
 
 def test_should_raise_when_event_doesnt_exist(event_store):
@@ -195,7 +195,7 @@ def test_should_return_all_events_ordered_forward(event_store):
     for idx in range(5):
         event_store.publish(TestEvent(event_id=str(idx)), stream_name="stream_name")
 
-    events = event_store.read().stream("stream_name").start_from("1").limit(3).to_list()
+    events = event_store.read().stream("stream_name").start_from("1").limit(3).execute()
 
     assert events[0] == TestEvent(event_id="2")
     assert events[1] == TestEvent(event_id="3")
@@ -211,7 +211,7 @@ def test_should_return_specified_amount_of_events_ordered_forward(
 ):
     event_store.publish(four_events, stream_name="stream_name")
 
-    events = event_store.read().stream("stream_name").start_from("1").to_list()
+    events = event_store.read().stream("stream_name").start_from("1").execute()
 
     assert events[0] == TestEvent(event_id="2")
 
@@ -225,7 +225,7 @@ def test_should_return_selected_events_ordered_backward(event_store, four_events
         .stream("stream_name")
         .start_from("2")
         .limit(3)
-        .to_list()
+        .execute()
     )
 
     assert events[0] == TestEvent(event_id="1")
@@ -235,7 +235,7 @@ def test_should_return_selected_events_ordered_backward(event_store, four_events
 def test_should_return_all_events_ordered_backward(event_store, four_events):
     event_store.publish(four_events, stream_name="stream_name")
 
-    events = event_store.read().backward().stream("stream_name").to_list()
+    events = event_store.read().backward().stream("stream_name").execute()
 
     assert events[0] == TestEvent(event_id="3")
     assert events[1] == TestEvent(event_id="2")
@@ -249,10 +249,10 @@ def test_should_successfully_delete_streams_of_events(event_store):
     for _ in range(4):
         event_store.publish(TestEvent(), stream_name="test_2")
 
-    all_events = event_store.read().limit(100).to_list()
+    all_events = event_store.read().limit(100).execute()
     assert len(all_events) == 8
 
     event_store.delete_stream("test_2")
-    all_events = event_store.read().limit(100).to_list()
+    all_events = event_store.read().limit(100).execute()
     assert len(all_events) == 8
-    assert event_store.read().stream("test_2").to_list() == []
+    assert event_store.read().stream("test_2").execute() == []
