@@ -5,17 +5,13 @@ from contextlib import contextmanager
 from unittest import TestCase
 
 import pytest
-from exceptions import EventNotFound, InvalidPageSize
+from exceptions import EventNotFound, InvalidPageSize, InvalidPageStop, InvalidPageStart
 from record import Record
 
 from event_store.event import Event
 from event_store.in_memory_repository import InMemoryRepository
 from event_store.mappers.default import Default
-from event_store.specification import (
-    InvalidPageStart,
-    Specification,
-    SpecificationResult,
-)
+from event_store.specification import Specification, SpecificationResult
 from event_store.specification_reader import SpecificationReader
 from event_store.stream import GLOBAL_STREAM, Stream
 
@@ -69,10 +65,10 @@ class SpecificationTest(TestCase):
             self.assertEqual(self.specification.start_from("123").result.start, "123")
 
     def test_specification_to(self):
-        with self.assertRaises(InvalidPageStart):
+        with self.assertRaises(InvalidPageStop):
             self.specification.to(None)
 
-        with self.assertRaises(InvalidPageStart):
+        with self.assertRaises(InvalidPageStop):
             self.specification.to("")
 
         with self.assertRaises(EventNotFound):

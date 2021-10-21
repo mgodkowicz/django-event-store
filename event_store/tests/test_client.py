@@ -2,10 +2,10 @@ import uuid
 from unittest.mock import Mock
 
 import pytest
-from exceptions import EventNotFound, IncorrectStreamData, InvalidPageSize
-from specification import InvalidPageStart
+from exceptions import EventNotFound, IncorrectStreamData, InvalidPageSize, InvalidPageStart
 from stream import Stream
 
+# from event_store.exceptions import InvalidPageStart
 from event_store.event import Event
 
 

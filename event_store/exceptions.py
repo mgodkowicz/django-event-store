@@ -8,3 +8,11 @@ class EventNotFound(Exception):
 
 class InvalidPageSize(Exception):
     pass
+
+
+class InvalidPageStart(Exception):
+    pass
+
+
+class InvalidPageStop(Exception):
+    pass

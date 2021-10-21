@@ -1,11 +1,13 @@
 import math
 from copy import copy
-from dataclasses import dataclass, field, fields
+from dataclasses import dataclass
 from typing import List, Optional, Sequence, Union
 
-from exceptions import EventNotFound, InvalidPageSize
+from exceptions import EventNotFound, InvalidPageSize, InvalidPageStop, InvalidPageStart
 from specification_reader import SpecificationReader
 from stream import Stream
+
+# from event_store.exceptions import InvalidPageStart
 
 
 @dataclass
@@ -71,10 +73,6 @@ class SpecificationResult:
     # with_types
 
 
-class InvalidPageStart(Exception):
-    pass
-
-
 class Specification:
     DEFAULT_BATCH_SIZE = 100
 
@@ -119,7 +117,7 @@ class Specification:
         :return:
         """
         if not stop:
-            raise InvalidPageStart
+            raise InvalidPageStop
 
         if not self.reader.has_event(stop):
             raise EventNotFound
