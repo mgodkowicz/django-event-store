@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from unittest import TestCase
 
 import pytest
-from exceptions import EventNotFound, InvalidPageSize, InvalidPageStop, InvalidPageStart
+from exceptions import EventNotFound, InvalidPageSize, InvalidPageStart, InvalidPageStop
 from record import Record
 
 from event_store.event import Event

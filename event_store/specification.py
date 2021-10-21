@@ -3,7 +3,7 @@ from copy import copy
 from dataclasses import dataclass
 from typing import List, Optional, Sequence, Union
 
-from exceptions import EventNotFound, InvalidPageSize, InvalidPageStop, InvalidPageStart
+from exceptions import EventNotFound, InvalidPageSize, InvalidPageStart, InvalidPageStop
 from specification_reader import SpecificationReader
 from stream import Stream
 
