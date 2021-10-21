@@ -1,34 +1,9 @@
-import datetime
 import uuid
-from typing import Optional
 
 import pytest
 
-from event_store.in_memory_repository import EventDuplicatedInStream
-from event_store.record import Record
+from event_store.exceptions import EventDuplicatedInStream
 from event_store.stream import Stream
-
-
-@pytest.fixture
-def record():
-    def _record_inner(
-        event_id: Optional[str] = None,
-        data: Optional[dict] = None,
-        metadata: Optional[dict] = None,
-        event_type: str = "FakeRecordTestEvent",
-        timestamp: Optional[datetime.datetime.timestamp] = None,
-        valid_at: Optional[datetime.datetime.timestamp] = None,
-    ) -> Record:
-        return Record(
-            event_id=event_id or uuid.uuid4(),
-            data=data or {},
-            metadata=metadata or {},
-            event_type=event_type,
-            timestamp=timestamp or datetime.datetime.now().timestamp(),
-            valid_at=timestamp or datetime.datetime.now().timestamp(),
-        )
-
-    return _record_inner
 
 
 def test_does_not_allow_for_duplicated_events_in_the_stream(repository, record):

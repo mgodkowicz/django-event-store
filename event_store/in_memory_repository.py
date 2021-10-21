@@ -4,15 +4,11 @@ from math import inf
 from typing import Dict, List, Union
 
 from batch_enumerator import BatchIterator
-from exceptions import EventNotFound
+from exceptions import EventDuplicatedInStream, EventNotFound
 from record import Record
 from repository import EventsRepository, Records
 from specification import SpecificationResult
 from stream import Stream
-
-
-class EventDuplicatedInStream(BaseException):
-    pass
 
 
 @dataclass

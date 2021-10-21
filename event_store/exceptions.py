@@ -16,3 +16,7 @@ class InvalidPageStart(Exception):
 
 class InvalidPageStop(Exception):
     pass
+
+
+class EventDuplicatedInStream(BaseException):
+    pass

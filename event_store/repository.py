@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from record import Record
 from specification import SpecificationResult
@@ -11,7 +11,7 @@ Records = List[Record]
 class EventsRepository(ABC):
     @abstractmethod
     def append_to_stream(
-        self, records: Records, stream: Stream, expected_version=None
+        self, records: Records, stream: Stream, expected_version: Optional[int] = None
     ) -> "EventsRepository":
         pass
 
