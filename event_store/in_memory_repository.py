@@ -4,6 +4,7 @@ from math import inf
 from typing import Dict, List, Union
 
 from batch_enumerator import BatchIterator
+from exceptions import EventNotFound
 from record import Record
 from repository import EventsRepository, Records
 from specification import SpecificationResult
@@ -47,8 +48,14 @@ class InMemoryRepository(EventsRepository):
 
         return self
 
-    def link_to_stream(self, event_ids, stream, expected_version):
-        pass
+    def link_to_stream(
+        self, event_ids: List[str], stream: Stream, expected_version
+    ) -> "InMemoryRepository":
+        serialized_records = [self._read_record(event_id) for event_id in event_ids]
+        for index, serialized_record in enumerate(serialized_records):
+            self._add_to_stream(stream, serialized_record, 0, index)
+
+        return self
 
     def read(
         self, spec: SpecificationResult
@@ -85,6 +92,13 @@ class InMemoryRepository(EventsRepository):
 
     def count(self, spec: SpecificationResult) -> int:
         return len(self._read_scope(spec))
+
+    def streams_of(self, event_id: str) -> list:
+        return [
+            Stream.new(stream_name)
+            for stream_name in self.streams
+            if self._has_event_in_stream(event_id, stream_name)
+        ]
 
     def _add_to_stream(
         self, stream: Stream, serialized_record: Record, resolved_version, index
@@ -135,6 +149,13 @@ class InMemoryRepository(EventsRepository):
             if record.event_id == event_id:
                 return idx
 
+    def _has_event_in_stream(self, event_id: str, stream_name: str) -> bool:
+        events_ids_in_stream = [
+            event_in_stream.event_id
+            for event_in_stream in self.streams.get(stream_name, [])
+        ]
+        return event_id in events_ids_in_stream
+
     def _event_ids_of_stream(self, stream: Stream) -> List[str]:
         return [event.event_id for event in self.streams[stream.name]]
 
@@ -150,3 +171,9 @@ class InMemoryRepository(EventsRepository):
         self, serialized_records: Records, spec: SpecificationResult
     ) -> Records:
         return serialized_records
+
+    def _read_record(self, event_id):
+        try:
+            return self.storage.get(event_id)
+        except KeyError:
+            raise EventNotFound(event_id)

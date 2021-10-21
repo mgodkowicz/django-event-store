@@ -1,7 +1,7 @@
 import uuid
 from collections import Iterable
 from datetime import datetime
-from typing import Callable, List, Optional, Union
+from typing import Callable, List, Optional, Union, Any, Sequence
 
 from broker import Broker
 from dispatcher import Dispatcher
@@ -64,6 +64,14 @@ class Client:
 
         return self
 
+    def link(
+        self, event_ids: Sequence[str], stream_name: str, expected_version: Any = None
+    ):
+        self.repository.link_to_stream(
+            event_ids, Stream.new(stream_name), expected_version
+        )
+        return self
+
     def subscribe(self, subscriber: Callable, to: List) -> "Client":
         if not isinstance(to, Iterable):
             to = [to]
@@ -83,6 +91,9 @@ class Client:
     def delete_stream(self, stream_name: str) -> "Client":
         self.repository.delete_stream(Stream(stream_name))
         return self
+
+    def streams_of(self, event_id: str) -> list:
+        return self.repository.streams_of(event_id)
 
     def _transform(self, events: Events) -> List[Record]:
         return [self.mapper.event_to_record(event) for event in events]

@@ -256,3 +256,19 @@ def test_should_successfully_delete_streams_of_events(event_store):
     all_events = event_store.read().limit(100).execute()
     assert len(all_events) == 8
     assert event_store.read().stream("test_2").execute() == []
+
+
+def test_should_return_list_of_streams_where_event_is_stored(event_store):
+    event_1 = TestEvent()
+    event_2 = TestEvent()
+    event_3 = TestEvent()
+    event_store.publish([event_1, event_2], stream_name="stream1")
+    event_store.publish([event_3], stream_name="stream2")
+    event_store.link([event_1.event_id], stream_name="stream2")
+
+    assert event_store.streams_of(event_1.event_id) == [
+        Stream.new("stream1"),
+        Stream.new("stream2"),
+    ]
+    assert event_store.streams_of(event_2.event_id) == [Stream.new("stream1")]
+    assert event_store.streams_of(event_3.event_id) == [Stream.new("stream2")]

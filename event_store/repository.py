@@ -36,3 +36,7 @@ class EventsRepository(ABC):
     @abstractmethod
     def count(self, spec: SpecificationResult) -> int:
         pass
+
+    @abstractmethod
+    def streams_of(self, event_id: str) -> list:
+        pass
