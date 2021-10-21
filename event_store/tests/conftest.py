@@ -1,4 +1,5 @@
 import pytest
+from client import Client
 from subscriptions import Subscriptions
 
 from event_store.in_memory_repository import InMemoryRepository
@@ -28,3 +29,16 @@ def specification(repository, mapper):
 @pytest.fixture()
 def subscription():
     return Subscriptions()
+
+
+@pytest.fixture
+def client(event_store) -> Client:
+    return event_store
+
+
+@pytest.fixture
+def event_store(repository, mapper) -> Client:
+    return Client(
+        repository=repository,
+        mapper=mapper,
+    )
