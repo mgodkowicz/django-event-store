@@ -1,7 +1,7 @@
 import math
 from copy import copy
-from dataclasses import dataclass, fields, field
-from typing import Optional, Union, Sequence, List
+from dataclasses import dataclass, field, fields
+from typing import List, Optional, Sequence, Union
 
 from exceptions import EventNotFound, InvalidPageSize
 from specification_reader import SpecificationReader

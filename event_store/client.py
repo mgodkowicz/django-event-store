@@ -1,7 +1,7 @@
 import uuid
 from collections import Iterable
 from datetime import datetime
-from typing import Callable, List, Optional, Union, Any, Sequence
+from typing import Any, Callable, List, Optional, Sequence, Union
 
 from broker import Broker
 from dispatcher import Dispatcher

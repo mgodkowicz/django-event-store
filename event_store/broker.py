@@ -17,7 +17,13 @@ class Broker:
             self.dispatcher(subscriber, event, record)
 
     def add_subscription(self, subscriber: Callable, event_types: Iterable):
-        # verify_subscription(subscriber)
+        self._verify_subscription(subscriber)
+        self.subscriptions.add_subscription(subscriber, event_types)
+
+    def add_global_subscription(self, subscriber: Callable):
+        self._verify_subscription(subscriber)
+        self.subscriptions.add_global_subscription(subscriber)
+
+    def _verify_subscription(self, subscriber):
         if not callable(subscriber):
             raise TypeError("Handler have to be callable.")
-        self.subscriptions.add_subscription(subscriber, event_types)

@@ -1,4 +1,5 @@
 import pytest
+from subscriptions import Subscriptions
 
 from event_store.in_memory_repository import InMemoryRepository
 from event_store.mappers.default import Default
@@ -22,3 +23,8 @@ def specification(repository, mapper):
     return Specification(
         SpecificationReader(repository, mapper), SpecificationResult(Stream.new())
     )
+
+
+@pytest.fixture()
+def subscription():
+    return Subscriptions()

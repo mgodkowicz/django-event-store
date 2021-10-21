@@ -1,4 +1,5 @@
 from collections import defaultdict
+from itertools import chain
 from typing import Callable, Dict, List, TypeVar
 
 
@@ -16,8 +17,10 @@ class Subscriptions:
     def add_global_subscription(self, subscriber):
         self._global.add(subscriber)
 
-    def all_for(self, event_type) -> list:
-        return self._local.all_for(event_type)
+    def all_for(self, event_type: str) -> list:
+        return list(
+            chain(self._local.all_for(event_type), self._global.all_for(event_type))
+        )
 
     def _default_event_type_resolver(self, event_type):
         if isinstance(event_type, str):
