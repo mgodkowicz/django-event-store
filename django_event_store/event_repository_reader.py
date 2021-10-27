@@ -1,4 +1,9 @@
+import math
+from typing import Union
+
 from batch_enumerator import BatchIterator
+from django_event_store.models import Event, EventsInStreams
+from event_store import Record
 from specification import SpecificationResult
 
 
@@ -15,28 +20,64 @@ class DjangoEventRepositoryReader:
                 return stream[offset : offset + limit]
 
             return [
-                batch
+                [self._to_record(event) for event in batch]
                 for batch in BatchIterator(spec.batch_size, spec.limit, batch_reader)
             ]
-        return stream
+        return [self._to_record(event) for event in stream]
 
     def _read_scope(self, spec: SpecificationResult):
-        stream = self.event_class.objects
-        if spec.with_ids is not None:
-            stream = stream.filter(event_id__in=spec.with_ids)
-        if spec.with_types is not None:
-            stream = stream.filter(event_type__in=spec.with_types)
+        if spec.stream.is_global:
+            stream = self.event_class.objects
+            if spec.with_ids is not None:
+                stream = stream.filter(event_id__in=spec.with_ids)
+            if spec.with_types is not None:
+                stream = stream.filter(event_type__in=spec.with_types)
 
-        stream = self._ordered(stream, spec)
-        if spec.limit:
-            stream = stream.all()[: spec.limit]
+            stream = self._ordered(stream, spec)
+            stream = self._order(stream, spec)
 
-        return self._order(stream, spec)
+            if spec.limit is not math.inf:
+                stream = stream.all()[: spec.limit]
+
+            return stream.all()
+        else:
+            # TODO rething if FK would be better after all
+            stream = self.stream_class.objects.filter(
+                stream=spec.stream.name
+            ).select_related("event")
+            stream = self._order(stream, spec)
+            stream = self._ordered(stream, spec)
+            if spec.limit is not math.inf:
+                stream = stream.all()[: spec.limit]
+
+            return stream.all()
 
     def _ordered(self, stream, spec):
         return stream
 
     def _order(self, stream, spec):
+        # see what we can do here. In rails its based on id
         if spec.backward:
-            return stream.reverse()
-        return stream
+            return stream.order_by("-created_at")
+        return stream.order_by("created_at")
+
+    def _to_record(self, event: Union[Event, EventsInStreams]):
+        if isinstance(event, Event):
+            return Record(
+                event_id=event.event_id,
+                metadata=event.metadata,
+                data=event.data,
+                event_type=event.event_type,
+                timestamp=event.created_at.timestamp(),
+                valid_at=event.valid_at.timestamp() or event.created_at.timestamp(),
+            )
+        elif isinstance(event, EventsInStreams):
+            return Record(
+                event_id=event.event.event_id,
+                metadata=event.event.metadata,
+                data=event.event.data,
+                event_type=event.event.event_type,
+                timestamp=event.event.created_at.timestamp(),
+                valid_at=event.event.valid_at.timestamp()
+                or event.event.created_at.timestamp(),
+            )

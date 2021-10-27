@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
+from expected_version import ExpectedVersion
 from record import Record
 from specification import SpecificationResult
 from stream import Stream
@@ -11,13 +12,19 @@ Records = List[Record]
 class EventsRepository(ABC):
     @abstractmethod
     def append_to_stream(
-        self, records: Records, stream: Stream, expected_version: Optional[int] = None
+        self,
+        records: Records,
+        stream: Stream,
+        expected_version: Optional[ExpectedVersion] = None,
     ) -> "EventsRepository":
         pass
 
     @abstractmethod
     def link_to_stream(
-        self, event_ids: List[str], stream: Stream, expected_version
+        self,
+        event_ids: List[str],
+        stream: Stream,
+        expected_version: Optional[ExpectedVersion] = None,
     ) -> "EventsRepository":
         pass
 

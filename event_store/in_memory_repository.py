@@ -5,6 +5,7 @@ from typing import Dict, List, Union
 
 from batch_enumerator import BatchIterator
 from exceptions import EventDuplicatedInStream, EventNotFound
+from expected_version import ExpectedVersion
 from record import Record
 from repository import EventsRepository, Records
 from specification import SpecificationResult
@@ -30,7 +31,10 @@ class InMemoryRepository(EventsRepository):
         self.storage: Dict[Record] = {}
 
     def append_to_stream(
-        self, records: Records, stream: Stream, expected_version=None
+        self,
+        records: Records,
+        stream: Stream,
+        expected_version: ExpectedVersion = ExpectedVersion.none(),
     ) -> "InMemoryRepository":
         serialized_records = [record.serialize(self.serializer) for record in records]
 
@@ -45,7 +49,10 @@ class InMemoryRepository(EventsRepository):
         return self
 
     def link_to_stream(
-        self, event_ids: List[str], stream: Stream, expected_version
+        self,
+        event_ids: List[str],
+        stream: Stream,
+        expected_version: ExpectedVersion = ExpectedVersion.none(),
     ) -> "InMemoryRepository":
         serialized_records = [self._read_record(event_id) for event_id in event_ids]
         for index, serialized_record in enumerate(serialized_records):
@@ -132,7 +139,6 @@ class InMemoryRepository(EventsRepository):
                 if record.event_id in spec.with_ids
             ]
         if spec.with_types is not None:
-            # breakpoint()
             serialized_records = [
                 record
                 for record in serialized_records

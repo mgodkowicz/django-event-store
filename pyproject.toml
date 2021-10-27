@@ -1,5 +1,6 @@
 [tool.poetry]
 name = "django-event-store"
+packages = [ { include = "./django_event_store" }, { include = "event_store" } ]
 version = "0.1.0"
 description = "Python event store"
 authors = ["Michał Godkowicz <michal.godkowicz@gmail.com>"]

@@ -20,3 +20,7 @@ class InvalidPageStop(Exception):
 
 class EventDuplicatedInStream(BaseException):
     pass
+
+
+class WrongExpectedEventVersion(Exception):
+    pass
