@@ -34,6 +34,10 @@ class ExpectedVersion:
     def auto(cls) -> "ExpectedVersion":
         return cls(Version.AUTO)
 
+    @classmethod
+    def new(cls, version: int) -> "ExpectedVersion":
+        return cls(version)
+
     def is_none(self) -> bool:
         return self.version == Version.NONE
 
@@ -49,4 +53,5 @@ class ExpectedVersion:
         elif self.is_none():
             return POSITION_DEFAULT
         elif self.is_auto():
-            return resolver(stream) or POSITION_DEFAULT
+            new_version = resolver(stream)
+            return new_version.position if new_version else POSITION_DEFAULT

@@ -103,8 +103,10 @@ class DjangoEventRepository(EventsRepository):
 
         return self
 
-    def _compute_position(self, resolved_version: int, index: int) -> int:
-        return resolved_version + index + self.POSITION_SHIFT
+    def _compute_position(self, resolved_version: int, index: int) -> Optional[int]:
+        if resolved_version is not None:
+            return resolved_version + index + self.POSITION_SHIFT
+        return None
 
     def _record_to_dict(self, record: Record) -> dict:
         return {

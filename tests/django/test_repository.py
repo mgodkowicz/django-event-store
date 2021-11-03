@@ -88,6 +88,26 @@ def test_allows_custom_base_class():
     pass
 
 
+@pytest.fixture()
+def event0(record):
+    return record()
+
+
+@pytest.fixture()
+def event1(record):
+    return record()
+
+
+@pytest.fixture()
+def event2(record):
+    return record()
+
+
+@pytest.fixture()
+def event3(record):
+    return record()
+
+
 @pytest.mark.django_db
 class TestRepository:
     global_stream = Stream.new()
@@ -262,61 +282,238 @@ class TestRepository:
             event1,
         ]
 
+    def test_none_on_first_and_subsequent_write(self):
+        event0 = self.record()
+        event1 = self.record()
 
-def none_on_first_and_subsequent_write():
-    pass
+        self.repository.append_to_stream([event0], self.stream, ExpectedVersion.none())
 
+        with pytest.raises(WrongExpectedEventVersion):
+            self.repository.append_to_stream(
+                [event1], self.stream, ExpectedVersion.none()
+            )
 
-def none_on_first_and_subsequent_link():
-    pass
+        assert self.read_events_forward(self.repository, count=1) == [event0]
 
+    def test_none_on_first_and_subsequent_link(self):
+        event0 = self.record()
+        event1 = self.record()
 
-def any_allows_stream_with_best_effort_order_and_no_guarantee():
-    pass
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.none()
+        )
 
+        with pytest.raises(WrongExpectedEventVersion):
+            self.repository.link_to_stream(
+                [event1.event_id], self.stream, ExpectedVersion.none()
+            )
 
-def any_allows_linking_in_stream_with_best_effort_order_and_no_guarantee():
-    pass
+        assert self.read_events_forward(self.repository, count=1) == [event0]
 
+    def test_any_allows_stream_with_best_effort_order_and_no_guarantee(self):
+        event0 = self.record()
+        event1 = self.record()
+        event2 = self.record()
+        event3 = self.record()
 
-def auto_queries_for_last_position_in_given_stream():
-    pass
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.any()
+        )
+        self.repository.append_to_stream(
+            [event2, event3], self.stream, ExpectedVersion.any()
+        )
 
+        assert self.read_events_forward(self.repository, self.stream) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
 
-def auto_queries_for_last_position_in_given_stream_when_linking():
-    pass
+    def test_any_allows_linking_in_stream_with_best_effort_order_and_no_guarantee(self):
+        event0 = self.record()
+        event1 = self.record()
+        event2 = self.record()
+        event3 = self.record()
 
+        self.repository.append_to_stream(
+            [event0, event1, event2, event3], self.stream, ExpectedVersion.any()
+        )
 
-def auto_starts_from_0():
-    pass
+        self.repository.link_to_stream(
+            [event0.event_id, event1.event_id], self.stream_flow, ExpectedVersion.any()
+        )
+        self.repository.link_to_stream(
+            [event2.event_id, event3.event_id], self.stream_flow, ExpectedVersion.any()
+        )
 
+        assert self.read_events_forward(self.repository, count=4) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
+        assert self.read_events_forward(self.repository, self.stream_flow) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
 
-def auto_linking_starts_from_0():
-    pass
+    def test_auto_queries_for_last_position_in_given_stream(self):
+        self.repository.append_to_stream(
+            [
+                self.record(),
+                self.record(),
+                self.record(),
+            ],
+            self.stream_flow,
+            ExpectedVersion.auto(),
+        )
+        self.repository.append_to_stream(
+            [self.record(), self.record()], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.append_to_stream(
+            [self.record(), self.record()], self.stream, ExpectedVersion(1)
+        )
 
+    def test_auto_queries_for_last_position_in_given_stream_when_linking(self):
+        event0 = self.record()
+        event1 = self.record()
+        event2 = self.record()
+        self.repository.append_to_stream(
+            [
+                event0,
+                event1,
+                event2,
+            ],
+            self.stream_flow,
+            ExpectedVersion.auto(),
+        )
+        self.repository.append_to_stream(
+            [self.record(), self.record()], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.link_to_stream(
+            [event0.event_id, event1.event_id, event2.event_id],
+            self.stream,
+            ExpectedVersion(1),
+        )
 
-def auto_queries_for_last_position_and_follows_in_incremental_way():
-    pass
+    def test_auto_starts_from_0(self):
+        self.repository.append_to_stream(
+            [self.record()], self.stream, ExpectedVersion.auto()
+        )
+        with pytest.raises(WrongExpectedEventVersion):
+            self.repository.append_to_stream(
+                [self.record()], self.stream, ExpectedVersion.none()
+            )
 
+    def test_auto_linking_starts_from_0(self):
+        event0 = self.record()
+        self.repository.append_to_stream(
+            [event0], self.stream_flow, ExpectedVersion.auto()
+        )
 
-def auto_queries_for_last_position_and_follows_in_incremental_way_when_linking():
-    pass
+        self.repository.link_to_stream(
+            [event0.event_id], self.stream, ExpectedVersion.auto()
+        )
 
+        with pytest.raises(WrongExpectedEventVersion):
+            self.repository.append_to_stream(
+                [self.record()], self.stream, ExpectedVersion.none()
+            )
 
-def auto_is_compatible_with_manual_expectation():
-    pass
+    def test_auto_queries_for_last_position_and_follows_in_incremental_way(
+        self, event0, event1, event2, event3
+    ):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.append_to_stream(
+            [event2, event3], self.stream, ExpectedVersion.auto()
+        )
 
+        assert self.read_events_forward(self.repository, self.stream) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
 
-def auto_is_compatible_with_manual_expectation_when_linking():
-    pass
+    def test_auto_queries_for_last_position_and_follows_in_incremental_way_when_linking(
+        self,
+    ):
+        pass
 
+    def test_auto_is_compatible_with_manual_expectation(
+        self, event0, event1, event2, event3
+    ):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.append_to_stream(
+            [event2, event3], self.stream, ExpectedVersion(1)
+        )
 
-def manual_is_compatible_with_auto_expectation():
-    pass
+        assert self.read_events_forward(self.repository, self.stream) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
 
+    def test_auto_is_compatible_with_manual_expectation_when_linking(
+        self, event0, event1
+    ):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.link_to_stream(
+            [event0.event_id], self.stream_flow, ExpectedVersion.auto()
+        )
+        self.repository.link_to_stream(
+            [event1.event_id], self.stream_flow, ExpectedVersion(0)
+        )
 
-def manual_is_compatible_with_auto_expectation_when_linking():
-    pass
+        assert self.read_events_forward(self.repository, self.stream_flow) == [
+            event0,
+            event1,
+        ]
+
+    def test_manual_is_compatible_with_auto_expectation(
+        self, event0, event1, event2, event3
+    ):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.none()
+        )
+        self.repository.append_to_stream(
+            [event2, event3], self.stream, ExpectedVersion.auto()
+        )
+
+        assert self.read_events_forward(self.repository, self.stream) == [
+            event0,
+            event1,
+            event2,
+            event3,
+        ]
+
+    def test_manual_is_compatible_with_auto_expectation_when_linking(
+        self, event0, event1
+    ):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.auto()
+        )
+        self.repository.link_to_stream(
+            [event0.event_id], self.stream_flow, ExpectedVersion.none()
+        )
+        self.repository.link_to_stream(
+            [event1.event_id], self.stream_flow, ExpectedVersion.auto()
+        )
+
+        assert self.read_events_forward(self.repository, self.stream_flow) == [
+            event0,
+            event1,
+        ]
 
 
 def unlimited_concurrency_for_any_everything_should_succeed():
