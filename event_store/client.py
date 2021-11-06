@@ -1,17 +1,18 @@
 import uuid
 from collections import Iterable
 from datetime import datetime
-from typing import Any, Callable, List, Optional, Sequence, Union
+from typing import Callable, List, Optional, Sequence, Union
 
-from broker import Broker
-from dispatcher import Dispatcher
-from event import Event
-from record import Record
-from repository import EventsRepository, Records
-from specification import Specification
-from specification_reader import SpecificationReader
-from stream import GLOBAL_STREAM, Stream
-from subscriptions import Subscriptions
+from event_store.broker import Broker
+from event_store.dispatcher import Dispatcher
+from event_store.event import Event
+from event_store.expected_version import ExpectedVersion
+from event_store.record import Record
+from event_store.repository import EventsRepository, Records
+from event_store.specification import Specification
+from event_store.specification_reader import SpecificationReader
+from event_store.stream import GLOBAL_STREAM, Stream
+from event_store.subscriptions import Subscriptions
 
 Events = Union[Event, List[Event]]
 
@@ -28,12 +29,15 @@ class Client:
         self.repository = repository
         self.subscriptions = subscriptions or Subscriptions()
         self.broker = Broker(self.subscriptions, dispatcher)
-        self.correlation_id_generator = uuid.uuid4
+        self.correlation_id_generator = lambda: str(uuid.uuid4())
         self.mapper = mapper
         self.clock = clock
 
     def publish(
-        self, events: Events, stream_name: str = GLOBAL_STREAM, expected_version=None
+        self,
+        events: Events,
+        stream_name: str = GLOBAL_STREAM,
+        expected_version: ExpectedVersion = ExpectedVersion.any(),
     ) -> "Client":
         if not isinstance(events, Iterable):
             events = [events]
@@ -51,7 +55,7 @@ class Client:
         self,
         events: Events,
         stream_name: str = GLOBAL_STREAM,
-        expected_version=None,
+        expected_version: ExpectedVersion = ExpectedVersion.any(),
     ) -> "Client":
         if not isinstance(events, Iterable):
             events = [events]
@@ -65,7 +69,10 @@ class Client:
         return self
 
     def link(
-        self, event_ids: Sequence[str], stream_name: str, expected_version: Any = None
+        self,
+        event_ids: Sequence[str],
+        stream_name: str,
+        expected_version: ExpectedVersion = ExpectedVersion.any(),
     ):
         self.repository.link_to_stream(
             event_ids, Stream.new(stream_name), expected_version
@@ -82,11 +89,11 @@ class Client:
         return Specification(SpecificationReader(self.repository, self.mapper))
 
     def append_records_to_stream(
-        self, records: Records, stream_name: str, expected_version
+        self, records: Records, stream_name: str, expected_version: ExpectedVersion
     ) -> None:
         self.repository.append_to_stream(
-            records, Stream.new(stream_name), None
-        )  # ExpectedVersion.new(expected_version))
+            records, Stream.new(stream_name), expected_version
+        )
 
     def delete_stream(self, stream_name: str) -> "Client":
         self.repository.delete_stream(Stream(stream_name))
@@ -104,7 +111,8 @@ class Client:
         return events
 
     def _enrich_event_metadata(self, event: Event) -> Event:
-        event.metadata["timestamp"] = self.clock()
+        # TODO unit test for timestamp and json serialization
+        event.metadata["timestamp"] = self.clock().timestamp()
         event.metadata["valid_at"] = event.metadata["timestamp"]
         event.metadata["correlation_id"] = self.correlation_id_generator()
         return event

@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 from enum import Enum
-from typing import Union, Callable
+from typing import Callable, Union
 
-from stream import Stream
+from event_store.stream import Stream
 
 
 class Version(Enum):

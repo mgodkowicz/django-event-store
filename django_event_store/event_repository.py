@@ -1,19 +1,17 @@
 from datetime import datetime
 from typing import List, Optional, Sequence
 
-from django.db import transaction, IntegrityError
-from django.utils.timezone import make_aware
-
-from exceptions import WrongExpectedEventVersion
-from expected_version import ExpectedVersion
-from repository import Records
-from specification import SpecificationResult
-from stream import Stream
+from django.db import IntegrityError, transaction
 
 from django_event_store.event_repository_reader import DjangoEventRepositoryReader
 from django_event_store.models import Event as EventModel
 from django_event_store.models import EventsInStreams
-from event_store import Event, EventsRepository, Record, EventNotFound
+from event_store import EventNotFound, EventsRepository, Record
+from event_store.exceptions import WrongExpectedEventVersion
+from event_store.expected_version import ExpectedVersion
+from event_store.repository import Records
+from event_store.specification import SpecificationResult
+from event_store.stream import Stream
 
 
 class DjangoEventRepository(EventsRepository):
@@ -31,7 +29,7 @@ class DjangoEventRepository(EventsRepository):
         self,
         records: Records,
         stream: Stream,
-        expected_version: Optional[ExpectedVersion] = ExpectedVersion.none(),
+        expected_version: Optional[ExpectedVersion] = ExpectedVersion.any(),
     ) -> "DjangoEventRepository":
         # FIXME figure out how to handle transactions
         with transaction.atomic():
@@ -47,7 +45,7 @@ class DjangoEventRepository(EventsRepository):
         self,
         event_ids: List[str],
         stream: Stream,
-        expected_version: Optional[ExpectedVersion] = ExpectedVersion.none(),
+        expected_version: Optional[ExpectedVersion] = ExpectedVersion.any(),
     ) -> "EventsRepository":
         with transaction.atomic():
             if self.event_class.objects.filter(event_id__in=event_ids).count() != len(

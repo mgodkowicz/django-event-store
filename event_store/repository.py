@@ -1,10 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import List, Optional
 
-from expected_version import ExpectedVersion
-from record import Record
-from specification import SpecificationResult
-from stream import Stream
+from event_store.expected_version import ExpectedVersion
+from event_store.record import Record
+from event_store.specification import SpecificationResult
+from event_store.stream import Stream
 
 Records = List[Record]
 

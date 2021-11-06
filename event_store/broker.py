@@ -1,8 +1,8 @@
 from typing import Callable, Iterable
 
-from dispatcher import Dispatcher
-from event import Event
-from subscriptions import Subscriptions
+from event_store.dispatcher import Dispatcher
+from event_store.event import Event
+from event_store.subscriptions import Subscriptions
 
 
 class Broker:

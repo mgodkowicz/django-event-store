@@ -2,12 +2,11 @@ import uuid
 
 import pytest
 
-from django_event_store.models import Event, EventsInStreams
-from exceptions import WrongExpectedEventVersion
-from expected_version import ExpectedVersion
-from stream import Stream
-
 from django_event_store.event_repository import DjangoEventRepository
+from django_event_store.models import Event, EventsInStreams
+from event_store.exceptions import WrongExpectedEventVersion
+from event_store.expected_version import ExpectedVersion
+from event_store.stream import Stream
 
 
 @pytest.fixture

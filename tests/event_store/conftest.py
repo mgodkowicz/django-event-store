@@ -1,6 +1,7 @@
 import pytest
-from client import Client
-from subscriptions import Subscriptions
+
+from event_store.client import Client
+from event_store.subscriptions import Subscriptions
 
 
 @pytest.fixture()

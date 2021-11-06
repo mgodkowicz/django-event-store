@@ -3,12 +3,12 @@ import uuid
 from typing import Optional
 
 import pytest
-from mappers.default import Default
-from specification import Specification, SpecificationResult
-from specification_reader import SpecificationReader
-from stream import Stream
 
 from event_store import InMemoryRepository, Record
+from event_store.mappers.default import Default
+from event_store.specification import Specification, SpecificationResult
+from event_store.specification_reader import SpecificationReader
+from event_store.stream import Stream
 
 
 @pytest.fixture

@@ -1,10 +1,10 @@
 import math
 from typing import Union
 
-from batch_enumerator import BatchIterator
 from django_event_store.models import Event, EventsInStreams
 from event_store import Record
-from specification import SpecificationResult
+from event_store.batch_enumerator import BatchIterator
+from event_store.specification import SpecificationResult
 
 
 class DjangoEventRepositoryReader:

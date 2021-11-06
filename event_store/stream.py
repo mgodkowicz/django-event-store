@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from exceptions import IncorrectStreamData
+from event_store.exceptions import IncorrectStreamData
 
 GLOBAL_STREAM = "global_stream"
 

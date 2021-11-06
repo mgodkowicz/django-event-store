@@ -5,12 +5,17 @@ from contextlib import contextmanager
 from unittest import TestCase
 
 import pytest
-from exceptions import EventNotFound, InvalidPageSize, InvalidPageStart, InvalidPageStop
-from record import Record
 
 from event_store.event import Event
+from event_store.exceptions import (
+    EventNotFound,
+    InvalidPageSize,
+    InvalidPageStart,
+    InvalidPageStop,
+)
 from event_store.in_memory_repository import InMemoryRepository
 from event_store.mappers.default import Default
+from event_store.record import Record
 from event_store.specification import Specification, SpecificationResult
 from event_store.specification_reader import SpecificationReader
 from event_store.stream import GLOBAL_STREAM, Stream

@@ -3,13 +3,13 @@ from dataclasses import dataclass
 from math import inf
 from typing import Dict, List, Union
 
-from batch_enumerator import BatchIterator
-from exceptions import EventDuplicatedInStream, EventNotFound
-from expected_version import ExpectedVersion
-from record import Record
-from repository import EventsRepository, Records
-from specification import SpecificationResult
-from stream import Stream
+from event_store.batch_enumerator import BatchIterator
+from event_store.exceptions import EventDuplicatedInStream, EventNotFound
+from event_store.expected_version import ExpectedVersion
+from event_store.record import Record
+from event_store.repository import EventsRepository, Records
+from event_store.specification import SpecificationResult
+from event_store.stream import Stream
 
 
 @dataclass

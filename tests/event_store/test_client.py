@@ -2,15 +2,15 @@ import uuid
 from unittest.mock import Mock
 
 import pytest
-from exceptions import (
+
+from event_store.event import Event
+from event_store.exceptions import (
     EventNotFound,
     IncorrectStreamData,
     InvalidPageSize,
     InvalidPageStart,
 )
-from stream import Stream
-
-from event_store.event import Event
+from event_store.stream import Stream
 
 
 class TestEvent(Event):
