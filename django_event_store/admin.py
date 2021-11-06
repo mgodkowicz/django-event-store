@@ -12,6 +12,12 @@ class EventAdmin(admin.ModelAdmin):
         "created_at",
         "valid_at",
     )
+    readonly_fields = (
+        "event_id",
+        "event_type",
+        "created_at",
+        "valid_at",
+    )
 
 
 class EventsInStreamsAdmin(admin.ModelAdmin):
@@ -21,6 +27,13 @@ class EventsInStreamsAdmin(admin.ModelAdmin):
         "id",
         "stream",
         "event_id",
+        "position",
+        "created_at",
+    )
+    readonly_fields = (
+        "id",
+        "stream",
+        "event",
         "position",
         "created_at",
     )
