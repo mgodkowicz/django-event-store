@@ -25,6 +25,9 @@ class DjangoEventRepositoryReader:
             ]
         return [self._to_record(event) for event in stream]
 
+    def has_event(self, event_id: str) -> bool:
+        return self.event_class.objects.filter(event_id=event_id).exists()
+
     def _read_scope(self, spec: SpecificationResult):
         if spec.stream.is_global:
             stream = self.event_class.objects

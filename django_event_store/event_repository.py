@@ -23,6 +23,9 @@ class DjangoEventRepository(EventsRepository):
         # fixme, configurable
         self.event_class = EventModel
         self.stream_class = EventsInStreams
+        self.repo_reader = DjangoEventRepositoryReader(
+            self.event_class, self.stream_class
+        )
 
     def append_to_stream(
         self,
@@ -56,15 +59,14 @@ class DjangoEventRepository(EventsRepository):
         return self
 
     def read(self, spec: SpecificationResult) -> List[Records]:
-        return DjangoEventRepositoryReader(self.event_class, self.stream_class).read(
-            spec
-        )
+        return self.repo_reader.read(spec)
 
     def has_event(self, event_id: str) -> bool:
-        pass
+        return self.repo_reader.has_event(event_id)
 
     def delete_stream(self, stream: Stream) -> "EventsRepository":
-        pass
+        self.stream_class.objects.filter(stream=stream.name).delete()
+        return self
 
     def count(self, spec: SpecificationResult) -> int:
         pass

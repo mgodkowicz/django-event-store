@@ -515,6 +515,15 @@ class TestRepository:
             event1,
         ]
 
+    def test_should_has_event_even_after_removing_stream(self, event0):
+        self.repository.append_to_stream([event0], self.stream)
+
+        assert self.repository.has_event(event0.event_id) is True
+        assert self.repository.has_event(str(uuid.uuid4())) is False
+
+        self.repository.delete_stream(self.stream)
+        assert self.repository.has_event(event0.event_id) is True
+
 
 def unlimited_concurrency_for_any_everything_should_succeed():
     pass
