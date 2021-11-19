@@ -54,9 +54,8 @@ class DjangoEventRepositoryReader:
         if spec.with_ids is not None:
             stream = stream.filter(event_id__in=spec.with_ids)
 
-        # Uncomment when tests written
-        # if spec.with_types is not None:
-        #     stream = stream.filter(event_type__in=spec.with_types)
+        if spec.with_types is not None:
+            stream = stream.filter(event_type__in=spec.with_types)
 
         if spec.start:
             stream = stream.filter(**self._start_condition_global(spec))
@@ -78,6 +77,9 @@ class DjangoEventRepositoryReader:
 
         if spec.with_ids is not None:
             stream = stream.filter(event_id__in=spec.with_ids)
+
+        if spec.with_types is not None:
+            stream = stream.filter(event__event_type__in=spec.with_types)
 
         stream = self._ordered(stream, spec)
         stream = self._order(stream, spec)

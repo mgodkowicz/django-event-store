@@ -4,13 +4,26 @@ from uuid import uuid4
 import pytest
 
 from django_event_store.event_repository import DjangoEventRepository
-from django_event_store.models import Event, EventsInStreams
-from event_store import EventNotFound
+from django_event_store.models import Event as EventModel
+from django_event_store.models import EventsInStreams
+from event_store import Event, EventNotFound
 from event_store.exceptions import WrongExpectedEventVersion
 from event_store.expected_version import ExpectedVersion
 from event_store.specification import Specification, SpecificationResult
 from event_store.specification_reader import SpecificationReader
 from event_store.stream import Stream
+
+
+class Type1(Event):
+    pass
+
+
+class Type2(Event):
+    pass
+
+
+class Type3(Event):
+    pass
 
 
 @pytest.fixture
@@ -83,7 +96,7 @@ def test_read_in_batches_forward_from_named_stream(
 def test_use_default_models():
     repository = DjangoEventRepository()
 
-    assert isinstance(repository.event_class(), Event)
+    assert isinstance(repository.event_class(), EventModel)
     assert isinstance(repository.stream_class(), EventsInStreams)
 
 
@@ -790,6 +803,44 @@ class TestRepository:
             .result
         )
         assert self.repository.read(spec)[0] == [event2, event0]
+
+    def test_read_events_of_type_from_global_scope(self):
+        event1 = self.record(event_type=Type1.__name__)
+        event2 = self.record(event_type=Type2.__name__)
+        event3 = self.record(event_type=Type1.__name__)
+        self.repository.append_to_stream(
+            [event1, event2, event3], self.stream, ExpectedVersion.any()
+        )
+
+        assert self.repository.read(self.specification.of_types([Type1]).result) == [
+            event1,
+            event3,
+        ]
+        assert self.repository.read(self.specification.of_type(Type2).result) == [
+            event2
+        ]
+        assert self.repository.read(self.specification.of_types([Type3]).result) == []
+
+    def test_read_events_of_type_from_local_scope(self):
+        event1 = self.record(event_type=Type1.__name__)
+        event2 = self.record(event_type=Type2.__name__)
+        event3 = self.record(event_type=Type1.__name__)
+        self.repository.append_to_stream(
+            [event1, event2, event3], self.stream, ExpectedVersion.any()
+        )
+
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).of_types([Type1]).result
+        ) == [event1, event3]
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).of_type(Type2).result
+        ) == [event2]
+        assert (
+            self.repository.read(
+                self.specification.stream(self.stream.name).of_types([Type3]).result
+            )
+            == []
+        )
 
 
 def unlimited_concurrency_for_any_everything_should_succeed():
