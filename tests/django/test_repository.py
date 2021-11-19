@@ -715,15 +715,81 @@ class TestRepository:
         ) == list(reversed(events[0:4]))
         assert self.read_events_backward(
             self.repository, start_from=events[4].event_id, count=100
-        ) == list(
-            reversed(events[0:4])
-        )  #
+        ) == list(reversed(events[0:4]))
         assert self.read_events_backward(
             self.repository, to=events[4].event_id, count=4
         ) == list(reversed(events[6:10]))
         assert self.read_events_backward(
             self.repository, to=events[4].event_id, count=100
         ) == list(reversed(events[5:10]))
+
+    def test_read_events_with_specific_id_from_global_scope(
+        self, event0, event1, event2
+    ):
+        self.repository.append_to_stream(
+            [event2, event0], self.stream, ExpectedVersion.any()
+        )
+
+        spec = self.specification.with_ids([event0.event_id]).read_first().result
+        assert self.repository.read(spec) == event0
+
+        spec = self.specification.with_ids([event2.event_id]).read_first().result
+        assert self.repository.read(spec) == event2
+
+        spec = self.specification.with_ids([event1.event_id]).read_first().result
+        assert self.repository.read(spec) is None
+
+        spec = self.specification.with_ids([]).result
+        assert self.repository.read(spec) == []
+
+        spec = (
+            self.specification.with_ids([event2.event_id, event0.event_id])
+            .in_batches(2)
+            .result
+        )
+        assert self.repository.read(spec)[0] == [event2, event0]
+
+    def test_read_events_with_specific_id_from_local_scope(
+        self, event0, event1, event2
+    ):
+        self.repository.append_to_stream(
+            [event2, event0], self.stream, ExpectedVersion.any()
+        )
+
+        spec = (
+            self.specification.stream(self.stream.name)
+            .with_ids([event0.event_id])
+            .read_first()
+            .result
+        )
+        assert self.repository.read(spec) == event0
+
+        spec = (
+            self.specification.stream(self.stream.name)
+            .with_ids([event2.event_id])
+            .read_first()
+            .result
+        )
+        assert self.repository.read(spec) == event2
+
+        spec = (
+            self.specification.stream(self.stream.name)
+            .with_ids([event1.event_id])
+            .read_first()
+            .result
+        )
+        assert self.repository.read(spec) is None
+
+        spec = self.specification.stream(self.stream.name).with_ids([]).result
+        assert self.repository.read(spec) == []
+
+        spec = (
+            self.specification.stream(self.stream.name)
+            .with_ids([event2.event_id, event0.event_id])
+            .in_batches(2)
+            .result
+        )
+        assert self.repository.read(spec)[0] == [event2, event0]
 
 
 def unlimited_concurrency_for_any_everything_should_succeed():

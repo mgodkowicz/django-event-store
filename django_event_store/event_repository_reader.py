@@ -24,6 +24,10 @@ class DjangoEventRepositoryReader:
                 [self._to_record(event) for event in batch]
                 for batch in BatchIterator(spec.batch_size, spec.limit, batch_reader)
             ]
+        elif spec.first:
+            record = stream.first()
+            return self._to_record(record) if record else None
+
         return [self._to_record(event) for event in stream]
 
     def has_event(self, event_id: str) -> bool:
@@ -31,9 +35,11 @@ class DjangoEventRepositoryReader:
 
     def position_in_stream(self, event_id: str, stream: Stream) -> int:
         try:
-            return self.stream_class.objects.only("position").get(
-                event_id=event_id, stream=stream.name
-            ).position
+            return (
+                self.stream_class.objects.only("position")
+                .get(event_id=event_id, stream=stream.name)
+                .position
+            )
         except self.stream_class.DoesNotExist:
             raise EventNotFound()
 
@@ -47,8 +53,10 @@ class DjangoEventRepositoryReader:
 
         if spec.with_ids is not None:
             stream = stream.filter(event_id__in=spec.with_ids)
-        if spec.with_types is not None:
-            stream = stream.filter(event_type__in=spec.with_types)
+
+        # Uncomment when tests written
+        # if spec.with_types is not None:
+        #     stream = stream.filter(event_type__in=spec.with_types)
 
         if spec.start:
             stream = stream.filter(**self._start_condition_global(spec))
@@ -67,6 +75,9 @@ class DjangoEventRepositoryReader:
         stream = self.stream_class.objects.filter(
             stream=spec.stream.name
         ).select_related("event")
+
+        if spec.with_ids is not None:
+            stream = stream.filter(event_id__in=spec.with_ids)
 
         stream = self._ordered(stream, spec)
         stream = self._order(stream, spec)
