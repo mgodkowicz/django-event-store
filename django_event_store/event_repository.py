@@ -72,6 +72,9 @@ class DjangoEventRepository(EventsRepository):
     def streams_of(self, event_id: str) -> list:
         pass
 
+    def position_in_stream(self, event_id: str, stream: Stream) -> int:
+        return self.repo_reader.position_in_stream(event_id, stream)
+
     def _add_to_stream(
         self,
         events_ids: Sequence[str],

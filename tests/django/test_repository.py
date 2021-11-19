@@ -1,11 +1,15 @@
 import uuid
+from uuid import uuid4
 
 import pytest
 
 from django_event_store.event_repository import DjangoEventRepository
 from django_event_store.models import Event, EventsInStreams
+from event_store import EventNotFound
 from event_store.exceptions import WrongExpectedEventVersion
 from event_store.expected_version import ExpectedVersion
+from event_store.specification import Specification, SpecificationResult
+from event_store.specification_reader import SpecificationReader
 from event_store.stream import Stream
 
 
@@ -107,6 +111,19 @@ def event3(record):
     return record()
 
 
+@pytest.fixture()
+def event4(record):
+    return record()
+
+
+@pytest.fixture
+def specification_with_orm(django_repository, mapper):
+    return Specification(
+        SpecificationReader(django_repository, mapper),
+        SpecificationResult(Stream.new()),
+    )
+
+
 @pytest.mark.django_db
 class TestRepository:
     global_stream = Stream.new()
@@ -118,8 +135,8 @@ class TestRepository:
         self.repository = django_repository
 
     @pytest.fixture(autouse=True)
-    def _specification(self, specification):
-        self.specification = specification
+    def _specification(self, specification_with_orm):
+        self.specification = specification_with_orm
 
     @pytest.fixture(autouse=True)
     def _record(self, record):
@@ -144,6 +161,13 @@ class TestRepository:
     ):
         return self.read_events(
             repository, self.specification, stream, start_from, to, count
+        )
+
+    def read_events_backward(
+        self, repository, stream=None, start_from=None, to=None, count=None
+    ):
+        return self.read_events(
+            repository, self.specification.backward(), stream, start_from, to, count
         )
 
     def test_append_to_stream_returns_self(self):
@@ -522,6 +546,184 @@ class TestRepository:
 
         self.repository.delete_stream(self.stream)
         assert self.repository.has_event(event0.event_id) is True
+
+    def test_data_attributes_are_retrieved(self):
+        event = self.record(data={"order_id": 2})
+        self.repository.append_to_stream([event], self.stream)
+
+        retrieved_event = self.read_events_forward(self.repository, count=1)[0]
+
+        assert retrieved_event.data == {"order_id": 2}
+
+    def test_metadata_attributes_are_retrieved(self):
+        event = self.record(metadata={"request_id": 2})
+        self.repository.append_to_stream([event], self.stream)
+
+        retrieved_event = self.read_events_forward(self.repository, count=1)[0]
+
+        assert retrieved_event.metadata == {"request_id": 2}
+
+    def test_position_in_stream(self, event0, event1):
+        self.repository.append_to_stream(
+            [event0, event1], self.stream, ExpectedVersion.auto()
+        )
+
+        assert self.repository.position_in_stream(event0.event_id, self.stream) == 0
+        assert self.repository.position_in_stream(event1.event_id, self.stream) == 1
+
+    def test_position_in_stream_event_not_found(self, event0):
+        with pytest.raises(EventNotFound):
+            self.repository.position_in_stream(event0.event_id, self.stream)
+
+    def test_position_in_stream_when_event_published_without_position(self, event0):
+        self.repository.append_to_stream([event0], self.stream, ExpectedVersion.any())
+
+        assert self.repository.position_in_stream(event0.event_id, self.stream) is None
+
+    def test_read_events_backward(self, event0, event2, event1):
+        self.repository.append_to_stream([event0, event1, event2], self.stream)
+
+        assert self.read_events_backward(self.repository, self.stream) == [
+            event2,
+            event1,
+            event0,
+        ]
+
+    def test_read_batch_of_events_from_stream_forward_and_backward(self):
+        events = [self.record(event_id=uuid4()) for _ in range(10)]
+        self.repository.append_to_stream(events, self.stream, ExpectedVersion.none())
+
+        assert (
+            self.read_events_forward(self.repository, self.stream, count=3)
+            == events[:3]
+        )
+        assert (
+            self.read_events_forward(self.repository, self.stream, count=100) == events
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, self.stream, start_from=events[4].event_id
+            )
+            == events[5:]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, self.stream, start_from=events[4].event_id, count=4
+            )
+            == events[5:9]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, self.stream, start_from=events[4].event_id, count=100
+            )
+            == events[5:]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, self.stream, to=events[4].event_id, count=3
+            )
+            == events[:3]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, self.stream, to=events[4].event_id, count=100
+            )
+            == events[:4]
+        )
+
+        assert self.read_events_backward(self.repository, self.stream, count=3) == list(
+            reversed(events[7:10])
+        )
+        assert (
+            self.read_events_backward(self.repository, self.stream, count=100)
+            == events[::-1]
+        )
+        assert self.read_events_backward(
+            self.repository, self.stream, start_from=events[4].event_id, count=4
+        ) == list(reversed(events[0:4]))
+        assert self.read_events_backward(
+            self.repository, self.stream, start_from=events[4].event_id, count=100
+        ) == list(
+            reversed(events[0:4])
+        )  #
+        assert self.read_events_backward(
+            self.repository, self.stream, to=events[4].event_id, count=4
+        ) == list(reversed(events[6:10]))
+        assert self.read_events_backward(
+            self.repository, self.stream, to=events[4].event_id, count=100
+        ) == list(reversed(events[5:10]))
+
+    def test_read_all_streams_events_forward_and_backward(
+        self, event0, event1, event2, event3, event4
+    ):
+        self.repository.append_to_stream([event0], self.stream, ExpectedVersion.none())
+        self.repository.append_to_stream(
+            [event1], self.stream_flow, ExpectedVersion.none()
+        )
+        self.repository.append_to_stream([event2], self.stream, ExpectedVersion(0))
+        self.repository.append_to_stream([event3], self.stream_flow, ExpectedVersion(0))
+        self.repository.append_to_stream([event4], self.stream_flow, ExpectedVersion(1))
+
+        assert self.read_events_forward(self.repository, self.stream) == [
+            event0,
+            event2,
+        ]
+        assert self.read_events_backward(self.repository, self.stream) == [
+            event2,
+            event0,
+        ]
+
+    def test_read_batch_of_events_from_all_streams_forward_and_backward(self):
+        events = [self.record(event_id=uuid4()) for _ in range(10)]
+        self.repository.append_to_stream(
+            events, Stream.new(str(uuid.uuid4())), ExpectedVersion.none()
+        )
+
+        assert self.read_events_forward(self.repository, count=3) == events[:3]
+        assert self.read_events_forward(self.repository, count=100) == events
+        assert (
+            self.read_events_forward(self.repository, start_from=events[4].event_id)
+            == events[5:]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, start_from=events[4].event_id, count=4
+            )
+            == events[5:9]
+        )
+        assert (
+            self.read_events_forward(
+                self.repository, start_from=events[4].event_id, count=100
+            )
+            == events[5:]
+        )
+        assert (
+            self.read_events_forward(self.repository, to=events[4].event_id, count=3)
+            == events[:3]
+        )
+        assert (
+            self.read_events_forward(self.repository, to=events[4].event_id, count=100)
+            == events[:4]
+        )
+
+        assert self.read_events_backward(self.repository, count=3) == list(
+            reversed(events[7:10])
+        )
+        assert self.read_events_backward(self.repository, count=100) == events[::-1]
+        assert self.read_events_backward(
+            self.repository, start_from=events[4].event_id, count=4
+        ) == list(reversed(events[0:4]))
+        assert self.read_events_backward(
+            self.repository, start_from=events[4].event_id, count=100
+        ) == list(
+            reversed(events[0:4])
+        )  #
+        assert self.read_events_backward(
+            self.repository, to=events[4].event_id, count=4
+        ) == list(reversed(events[6:10]))
+        assert self.read_events_backward(
+            self.repository, to=events[4].event_id, count=100
+        ) == list(reversed(events[5:10]))
 
 
 def unlimited_concurrency_for_any_everything_should_succeed():

@@ -47,3 +47,6 @@ class EventsRepository(ABC):
     @abstractmethod
     def streams_of(self, event_id: str) -> list:
         pass
+
+    def position_in_stream(self, event_id: str, stream: Stream):
+        pass
