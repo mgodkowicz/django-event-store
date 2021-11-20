@@ -1,20 +1,19 @@
 from typing import Callable, Iterable
 
-from event_store.dispatcher import Dispatcher
+from event_store.dispatcher import DispatcherBase
 from event_store.event import Event
 from event_store.subscriptions import Subscriptions
 
 
 class Broker:
-    def __init__(self, subscriptions: Subscriptions, dispatcher: Dispatcher):
+    def __init__(self, subscriptions: Subscriptions, dispatcher: DispatcherBase):
         self.subscriptions = subscriptions
         self.dispatcher = dispatcher
 
-    # def __call__(self, *args, **kwargs):
     def call(self, event: Event, record):
         subscribers = self.subscriptions.all_for(event.event_type)
         for subscriber in subscribers:
-            self.dispatcher(subscriber, event, record)
+            self.dispatcher.dispatch(subscriber, event, record)
 
     def add_subscription(self, subscriber: Callable, event_types: Iterable):
         self._verify_subscription(subscriber)

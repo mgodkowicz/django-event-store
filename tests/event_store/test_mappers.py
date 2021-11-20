@@ -17,7 +17,7 @@ class TestMappers(TestCase):
         assert record.event_id == self.domain_event.event_id
         assert record.event_type == self.domain_event.event_type
 
-    # def test_serialize_and_deserialize_gives_equal_event(self):
-    #     record = self.mapper.event_to_record(self.domain_event)
-    #
-    #     assert self.mapper.record_to_event(record) == self.domain_event
+    def test_serialize_and_deserialize_gives_equal_event(self):
+        record = self.mapper.event_to_record(self.domain_event)
+
+        assert self.mapper.record_to_event(record) == self.domain_event

@@ -4,9 +4,11 @@ from datetime import datetime
 from typing import Callable, List, Optional, Sequence, Union
 
 from event_store.broker import Broker
-from event_store.dispatcher import Dispatcher
+from event_store.dispatcher import Dispatcher, DispatcherBase
 from event_store.event import Event
 from event_store.expected_version import ExpectedVersion
+from event_store.mappers.default import Default
+from event_store.mappers.pipeline_mapper import PipelineMapper
 from event_store.record import Record
 from event_store.repository import EventsRepository, Records
 from event_store.specification import Specification
@@ -20,17 +22,17 @@ Events = Union[Event, List[Event]]
 class Client:
     def __init__(
         self,
-        repository: Optional[EventsRepository] = None,
+        repository: EventsRepository,
         subscriptions: Optional[Subscriptions] = None,
-        dispatcher: Dispatcher = Dispatcher(),
-        mapper=None,
+        dispatcher: DispatcherBase = Dispatcher(),
+        mapper: Optional[PipelineMapper] = None,
         clock: Callable = datetime.now,
     ):
         self.repository = repository
         self.subscriptions = subscriptions or Subscriptions()
         self.broker = Broker(self.subscriptions, dispatcher)
         self.correlation_id_generator = lambda: str(uuid.uuid4())
-        self.mapper = mapper
+        self.mapper = mapper or Default()
         self.clock = clock
 
     def publish(
