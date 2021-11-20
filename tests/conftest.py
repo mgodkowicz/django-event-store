@@ -18,8 +18,8 @@ def record():
         data: Optional[dict] = None,
         metadata: Optional[dict] = None,
         event_type: str = "FakeRecordTestEvent",
-        timestamp: Optional[datetime.datetime.timestamp] = None,
-        valid_at: Optional[datetime.datetime.timestamp] = None,
+        timestamp: Optional[datetime.datetime] = None,
+        valid_at: Optional[datetime.datetime] = None,
     ) -> Record:
         _now = datetime.datetime.now().timestamp()
         return Record(
@@ -27,8 +27,8 @@ def record():
             data=data or {},
             metadata=metadata or {},
             event_type=event_type,
-            timestamp=timestamp or _now,
-            valid_at=valid_at or _now,
+            timestamp=timestamp.timestamp() if timestamp else _now,
+            valid_at=valid_at.timestamp() if valid_at else _now,
         )
 
     return _record_inner

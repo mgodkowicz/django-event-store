@@ -26,6 +26,7 @@ class SpecificationResult:
     batch_size: int = 100
     with_ids: Optional[List[str]] = None
     with_types: Optional[List] = None
+    time_sort_by: Optional[str] = None
     # count: Optional[None] = None
 
     @property
@@ -165,6 +166,19 @@ class Specification:
 
     def last(self):
         return self.reader.one(self.read_last().result)
+
+    def as_at(self):
+        """
+        Sets the order of time sorting using transaction time
+        :return:
+        """
+        return self._new(time_sort_by="as_at")
+
+    def as_of(self):
+        """
+        Sets the order of time sorting using validity time
+        """
+        return self._new(time_sort_by="as_of")
 
     def forward(self):
         return self._new(direction="forward")

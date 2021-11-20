@@ -48,53 +48,51 @@ class DjangoEventRepositoryReader:
             return self._read_scope_for_global(spec)
         return self._read_scope_for_local(spec)
 
-    def _read_scope_for_global(self, spec):
-        stream = self.event_class.objects
+    def _read_scope_for_global(self, spec: SpecificationResult):
+        qs = self.event_class.objects
 
         if spec.with_ids is not None:
-            stream = stream.filter(event_id__in=spec.with_ids)
+            qs = qs.filter(event_id__in=spec.with_ids)
 
         if spec.with_types is not None:
-            stream = stream.filter(event_type__in=spec.with_types)
+            qs = qs.filter(event_type__in=spec.with_types)
 
         if spec.start:
-            stream = stream.filter(**self._start_condition_global(spec))
+            qs = qs.filter(**self._start_condition_global(spec))
         if spec.stop:
-            stream = stream.filter(**self._stop_condition_global(spec))
+            qs = qs.filter(**self._stop_condition_global(spec))
 
-        stream = self._ordered(stream, spec)
-        stream = self._order(stream, spec)
+        qs = self._ordered_global(qs, spec)
 
         if spec.limit is not math.inf:
-            stream = stream.all()[: spec.limit]
+            qs = qs.all()[: spec.limit]
 
-        return stream.all()
+        return qs.all()
 
-    def _read_scope_for_local(self, spec):
-        stream = self.stream_class.objects.filter(
-            stream=spec.stream.name
-        ).select_related("event")
+    def _read_scope_for_local(self, spec: SpecificationResult):
+        qs = self.stream_class.objects.filter(stream=spec.stream.name).select_related(
+            "event"
+        )
 
         if spec.with_ids is not None:
-            stream = stream.filter(event_id__in=spec.with_ids)
+            qs = qs.filter(event_id__in=spec.with_ids)
 
         if spec.with_types is not None:
-            stream = stream.filter(event__event_type__in=spec.with_types)
-
-        stream = self._ordered(stream, spec)
-        stream = self._order(stream, spec)
+            qs = qs.filter(event__event_type__in=spec.with_types)
 
         if spec.start:
-            stream = stream.filter(**self._start_condition(spec))
+            qs = qs.filter(**self._start_condition(spec))
         if spec.stop:
-            stream = stream.filter(**self._stop_condition(spec))
+            qs = qs.filter(**self._stop_condition(spec))
+
+        qs = self._ordered_local(qs, spec)
 
         if spec.limit is not math.inf:
-            stream = stream.all()[: spec.limit]
+            qs = qs.all()[: spec.limit]
 
-        return stream.all()
+        return qs.all()
 
-    def _start_condition(self, spec):
+    def _start_condition(self, spec: SpecificationResult):
         event_in_stream = self.stream_class.objects.only("id").get(
             event_id=spec.start, stream=spec.stream.name
         )
@@ -124,15 +122,33 @@ class DjangoEventRepositoryReader:
             return {"id__lt": event_id}
         return {"id__gt": event_id}
 
-    def _ordered(self, stream, spec):
-        return stream
+    def _ordered(self, qs, spec: SpecificationResult, field: str = ""):
+        conditions = []
+        try:
+            conditions.append(
+                {
+                    "as_at": self._order(f"{field}created_at", spec),
+                    "as_of": self._order(f"{field}valid_at", spec),
+                }[spec.time_sort_by]
+            )
+        except KeyError:
+            pass
 
-    def _order(self, stream, spec):
+        conditions.append(self._order("id", spec))
+        return qs.order_by(*conditions)
+
+    def _ordered_local(self, qs, spec: SpecificationResult):
+        return self._ordered(qs, spec, "event__")
+
+    def _ordered_global(self, qs, spec: SpecificationResult):
+        return self._ordered(qs, spec)
+
+    def _order(self, field: str, spec: SpecificationResult) -> str:
         if spec.backward:
-            return stream.order_by("-id")
-        return stream.order_by("id")
+            return f"-{field}"
+        return field
 
-    def _to_record(self, event: Union[Event, EventsInStreams]):
+    def _to_record(self, event: Union[Event, EventsInStreams]) -> Record:
         record = event.event if isinstance(event, self.stream_class) else event
         return Record(
             event_id=record.event_id,

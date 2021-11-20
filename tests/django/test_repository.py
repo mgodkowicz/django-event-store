@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -841,6 +842,94 @@ class TestRepository:
             )
             == []
         )
+
+    def test_time_order_is_respected(self):
+        event1 = self.record(
+            timestamp=datetime(2021, 1, 1), valid_at=datetime(2021, 1, 9)
+        )
+        event2 = self.record(
+            timestamp=datetime(2021, 1, 3), valid_at=datetime(2021, 1, 6)
+        )
+        event3 = self.record(
+            timestamp=datetime(2021, 1, 2), valid_at=datetime(2021, 1, 3)
+        )
+
+        self.repository.append_to_stream([event1, event2, event3], self.stream)
+
+        assert self.repository.read(self.specification.result) == [
+            event1,
+            event2,
+            event3,
+        ]
+        assert self.repository.read(self.specification.as_at().result) == [
+            event1,
+            event3,
+            event2,
+        ]
+        assert self.repository.read(self.specification.as_at().backward().result) == [
+            event2,
+            event3,
+            event1,
+        ]
+        assert self.repository.read(self.specification.as_of().result) == [
+            event3,
+            event2,
+            event1,
+        ]
+        assert self.repository.read(self.specification.as_of().backward().result) == [
+            event1,
+            event2,
+            event3,
+        ]
+
+    def test_time_order_is_respected_in_local_scope(self):
+        event1 = self.record(
+            timestamp=datetime(2021, 1, 1), valid_at=datetime(2021, 1, 9)
+        )
+        event2 = self.record(
+            timestamp=datetime(2021, 1, 3), valid_at=datetime(2021, 1, 6)
+        )
+        event3 = self.record(
+            timestamp=datetime(2021, 1, 2), valid_at=datetime(2021, 1, 3)
+        )
+
+        self.repository.append_to_stream([event1, event2, event3], self.stream)
+
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).result
+        ) == [
+            event1,
+            event2,
+            event3,
+        ]
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).as_at().result
+        ) == [
+            event1,
+            event3,
+            event2,
+        ]
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).as_at().backward().result
+        ) == [
+            event2,
+            event3,
+            event1,
+        ]
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).as_of().result
+        ) == [
+            event3,
+            event2,
+            event1,
+        ]
+        assert self.repository.read(
+            self.specification.stream(self.stream.name).as_of().backward().result
+        ) == [
+            event1,
+            event2,
+            event3,
+        ]
 
 
 def unlimited_concurrency_for_any_everything_should_succeed():
