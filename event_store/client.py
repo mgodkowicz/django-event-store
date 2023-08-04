@@ -1,5 +1,5 @@
 import uuid
-from collections import Iterable
+from collections.abc import Iterable
 from datetime import datetime
 from typing import Callable, List, Optional, Sequence, Union
 

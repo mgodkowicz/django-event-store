@@ -1,6 +1,6 @@
 import math
 import uuid
-from collections import Iterable
+from collections.abc import Iterable
 from contextlib import contextmanager
 from unittest import TestCase
 
