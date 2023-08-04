@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from math import inf
 from typing import Dict, List, Union
 
-from event_store.batch_enumerator import BatchIterator
+from event_store.batch_enumerator import BatchEnumerator
 from event_store.exceptions import EventDuplicatedInStream, EventNotFound
 from event_store.expected_version import ExpectedVersion
 from event_store.record import Record
@@ -74,9 +74,9 @@ class InMemoryRepository(EventsRepository):
 
             res = [
                 batch
-                for batch in BatchIterator(
+                for batch in BatchEnumerator.new(
                     spec.batch_size, len(serialized_records), batch_reader
-                )
+                ).each()
             ]
             return res
         elif spec.first:

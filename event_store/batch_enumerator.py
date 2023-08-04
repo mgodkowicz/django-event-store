@@ -1,23 +1,44 @@
-from dataclasses import dataclass
-from typing import Any, Callable, Iterable
+from typing import Callable, Iterable
 
 
-@dataclass
-class BatchIterator:
-    batch_size: int
-    total_limit: int
-    reader: Callable[[int, int], Iterable]
-    _batch_offset: int = 0
+class BatchEnumerator:
+    """
+    Port of https://github.com/RailsEventStore/rails_event_store/blob/v2.11.1/ruby_event_store/lib/ruby_event_store/batch_enumerator.rb
+    """
 
-    def __iter__(self):
-        return self
+    def __init__(
+        self,
+        batch_size: int,
+        total_limit: int,
+        reader: Callable[[int, int], Iterable],
+    ):
+        self._batch_size = batch_size
+        self._total_limit = total_limit
+        self._reader = reader
 
-    def __next__(self):
-        batch_limit = min([self.batch_size, self.total_limit - self._batch_offset])
-        result = self.reader(self._batch_offset, batch_limit)
+    @classmethod
+    def new(
+        cls,
+        batch_size: int,
+        total_limit: int,
+        reader: Callable[[int, int], Iterable],
+    ):
+        return cls(batch_size, total_limit, reader)
 
-        if not result or self._batch_offset > self.total_limit - 1:
-            raise StopIteration
+    def each(self):
+        batch_offset = 0
+        while batch_offset < self._total_limit:
+            batch_limit = min(self._batch_size, self._total_limit - batch_offset)
+            result = self._reader(batch_offset, batch_limit)
 
-        self._batch_offset += self.batch_size
-        return result
+            batch_offset += self._batch_size
+
+            if not result:
+                break
+            yield result
+
+    def first(self):
+        return next(self.each(), None)
+
+    def to_a(self):
+        return list(self.each())

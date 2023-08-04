@@ -3,7 +3,7 @@ from typing import Union
 
 from django_event_store.models import Event, EventsInStreams
 from event_store import EventNotFound, Record
-from event_store.batch_enumerator import BatchIterator
+from event_store.batch_enumerator import BatchEnumerator
 from event_store.specification import SpecificationResult
 from event_store.stream import Stream
 
@@ -22,7 +22,7 @@ class DjangoEventRepositoryReader:
 
             return [
                 [self._to_record(event) for event in batch]
-                for batch in BatchIterator(spec.batch_size, spec.limit, batch_reader)
+                for batch in BatchEnumerator.new(spec.batch_size, spec.limit, batch_reader).each()
             ]
         elif spec.first:
             record = stream.first()
