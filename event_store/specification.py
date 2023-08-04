@@ -1,6 +1,6 @@
 import math
 from copy import copy
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional, Sequence, Union
 
 from event_store.exceptions import (
@@ -17,7 +17,7 @@ from event_store.stream import Stream
 
 @dataclass
 class SpecificationResult:
-    stream: Stream = Stream.new()
+    stream: Stream = field(default_factory=Stream.new)
     start: Optional[str] = None
     stop: Optional[str] = None
     direction: str = "forward"  # FIXME enum?
