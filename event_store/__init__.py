@@ -11,6 +11,7 @@ from event_store.exceptions import (
 from event_store.in_memory_repository import InMemoryRepository
 from event_store.record import Record
 from event_store.repository import EventsRepository
+from event_store.serialized_record import SerializedRecord
 from event_store.stream import GLOBAL_STREAM
 from event_store.subscriptions import Subscriptions
 
@@ -22,6 +23,7 @@ __all__ = [
     "Subscriptions",
     "Event",
     "Record",
+    "SerializedRecord",
     "IncorrectStreamData",
     "EventNotFound",
     "InvalidPageSize",

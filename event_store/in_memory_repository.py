@@ -20,7 +20,7 @@ class EventInStream:
 
 class FakeSerializer:
     @staticmethod
-    def dumps(args):
+    def dump(args):
         return args
 
 
