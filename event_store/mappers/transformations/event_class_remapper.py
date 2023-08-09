@@ -9,7 +9,7 @@ class EventClassRemapper:
         return record
 
     def load(self, record):
-        return Record(
+        return Record.new(
             event_id=record.event_id,
             event_type=self.class_map.get(record.event_type, record.event_type),
             data=record.data,

@@ -9,7 +9,7 @@ class SymbolizeMetadataKeys:
         return self._symbolize(record)
 
     def _symbolize(self, record):
-        return Record(
+        return Record.new(
             event_id=record.event_id,
             event_type=record.event_type,
             data=record.data,

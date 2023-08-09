@@ -21,14 +21,14 @@ def record():
         timestamp: Optional[datetime.datetime] = None,
         valid_at: Optional[datetime.datetime] = None,
     ) -> Record:
-        _now = datetime.datetime.now().timestamp()
-        return Record(
-            event_id=event_id or uuid.uuid4(),
+        _now = datetime.datetime.now()
+        return Record.new(
+            event_id=event_id or str(uuid.uuid4()),
             data=data or {},
             metadata=metadata or {},
             event_type=event_type,
-            timestamp=timestamp.timestamp() if timestamp else _now,
-            valid_at=valid_at.timestamp() if valid_at else _now,
+            timestamp=timestamp or _now,
+            valid_at=valid_at or _now,
         )
 
     return _record_inner

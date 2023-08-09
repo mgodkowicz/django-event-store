@@ -1,3 +1,4 @@
+import datetime
 import math
 import uuid
 from collections.abc import Iterable
@@ -103,11 +104,12 @@ class SpecificationTest(TestCase):
     def test_record(
         self, event_id=None, event_type=None, data=None, timestamp=None, valid_at=None
     ):
+        _now = datetime.datetime.now()
         event_type = event_type or TestEvent
-        metadata = {"timestamp": timestamp, "valid_at": valid_at}
+        metadata = {"timestamp": timestamp or _now, "valid_at": valid_at or _now}
         return self.mapper.event_to_record(
             event_type(
-                event_id=event_id or uuid.uuid4(), data=data or {}, metadata=metadata
+                event_id=event_id or str(uuid.uuid4()), data=data or {}, metadata=metadata
             )
         )
 
@@ -123,11 +125,12 @@ def test_record(mapper):
     def _test_record_inner(
         event_id=None, event_type=None, data=None, timestamp=None, valid_at=None
     ) -> Record:
+        _now = datetime.datetime.now()
         event_type = event_type or TestEvent
-        metadata = {"timestamp": timestamp, "valid_at": valid_at}
+        metadata = {"timestamp": timestamp or _now, "valid_at": valid_at or _now}
         return mapper.event_to_record(
             event_type(
-                event_id=event_id or uuid.uuid4(), data=data or {}, metadata=metadata
+                event_id=event_id or str(uuid.uuid4()), data=data or {}, metadata=metadata
             )
         )
 

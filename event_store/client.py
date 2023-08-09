@@ -114,7 +114,7 @@ class Client:
 
     def _enrich_event_metadata(self, event: Event) -> Event:
         # TODO unit test for timestamp and json serialization
-        event.metadata["timestamp"] = self.clock().timestamp()
+        event.metadata["timestamp"] = self.clock()
         event.metadata["valid_at"] = event.metadata["timestamp"]
         event.metadata["correlation_id"] = self.correlation_id_generator()
         return event

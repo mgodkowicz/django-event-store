@@ -150,11 +150,11 @@ class DjangoEventRepositoryReader:
 
     def _to_record(self, event: Union[Event, EventsInStreams]) -> Record:
         record = event.event if isinstance(event, self.stream_class) else event
-        return Record(
+        return Record.new(
             event_id=record.event_id,
             metadata=record.metadata,
             data=record.data,
             event_type=record.event_type,
-            timestamp=record.created_at.timestamp(),
-            valid_at=record.valid_at.timestamp() or event.created_at.timestamp(),
+            timestamp=record.created_at,
+            valid_at=record.valid_at or event.created_at,
         )
