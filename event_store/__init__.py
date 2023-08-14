@@ -9,6 +9,7 @@ from event_store.exceptions import (
     InvalidPageStop,
 )
 from event_store.in_memory_repository import InMemoryRepository
+from event_store.metadata import Metadata
 from event_store.record import Record
 from event_store.repository import EventsRepository
 from event_store.serialized_record import SerializedRecord
@@ -22,6 +23,7 @@ __all__ = [
     "InMemoryRepository",
     "Subscriptions",
     "Event",
+    "Metadata",
     "Record",
     "SerializedRecord",
     "IncorrectStreamData",
