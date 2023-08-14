@@ -6,6 +6,10 @@ from event_store.subscriptions import Subscriptions
 
 
 class Broker:
+    """
+    Port of https://github.com/RailsEventStore/rails_event_store/blob/v2.11.1/ruby_event_store/lib/ruby_event_store/broker.rb
+    """
+
     def __init__(self, subscriptions: Subscriptions, dispatcher: DispatcherBase):
         self.subscriptions = subscriptions
         self.dispatcher = dispatcher

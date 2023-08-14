@@ -20,6 +20,10 @@ Events = Union[Event, List[Event]]
 
 
 class Client:
+    """
+    Port of: https://github.com/RailsEventStore/rails_event_store/blob/v2.11.1/ruby_event_store/lib/ruby_event_store/client.rb
+    """
+
     def __init__(
         self,
         repository: EventsRepository,
